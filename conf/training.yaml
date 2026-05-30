@@ -1,0 +1,15 @@
+# Default hyperparameters per family. Overridable on the train CLI.
+defaults:
+  backend: mlx          # MLX-first; switch to cuda on a DO GPU droplet for heavy jobs
+  epochs: 5
+  lr: 3.0e-4
+  batch_size: 16
+  seed: 0
+
+moe-finetune:
+  epochs: 3
+  lr: 1.0e-5            # gentle continue-finetune of a pretrained MoE
+
+anon-lora:
+  lora_rank: 16
+  lr: 2.0e-4

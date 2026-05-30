@@ -1,0 +1,45 @@
+# Registry of KP privacy-model families and variants.
+# Primary track = continue-finetune the privacy-filter MoE (proven by OpenMed, MLX-friendly).
+
+moe-finetune:
+  type: moe-finetune
+  variants:
+    - name: kp-deid-moe
+      base_model: openai/privacy-filter   # 1.5B total / 50M active, BIOES
+      note: "Our deltas vs OpenMed: real+domain data, deep-EU langs, GDPR/legal taxonomy, reported eval"
+
+xlmr-ner:
+  type: xlmr-ner
+  variants:
+    - name: kp-deid-xlmr-560m
+      base_model: FacebookAI/xlm-roberta-large
+      params: 560M
+    - name: kp-deid-mdeberta
+      base_model: microsoft/mdeberta-v3-base
+      params: 280M
+
+gliner:
+  type: gliner
+  variants:
+    - name: kp-deid-gliner-ml
+      base_model: knowledgator/gliner-multitask-large-v0.5
+
+anon-lora:
+  type: anon-lora
+  variants:
+    - name: kp-anon-qwen3-1.7b-lora
+      base_model: Qwen/Qwen3-1.7B
+      lora_rank: 16
+
+classifier:
+  type: classifier
+  variants:
+    - name: kp-sensitivity-mdeberta
+      base_model: microsoft/mdeberta-v3-base
+
+# Evaluation baselines (run via europriv-bench; some are baseline-ONLY for license reasons).
+baselines:
+  - { name: openai/privacy-filter, role: baseline }
+  - { name: OpenMed/privacy-filter-multilingual, role: baseline }
+  - { name: tabularisai/eu-pii-safeguard, role: baseline }
+  - { name: iiiorg/piiranha-v1-detect-personal-information, role: baseline-only, license: cc-by-nc-nd-4.0 }

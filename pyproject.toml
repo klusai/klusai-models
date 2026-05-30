@@ -1,0 +1,36 @@
+[project]
+name = "kp-models"
+version = "0.1.0"
+description = "KlusAI Privacy models — finetuning, evaluation, and the klusai.privacy.sdk SDK"
+requires-python = ">=3.13"
+dependencies = [
+    "pyyaml>=6.0,<7",
+    "pydantic>=2.0,<3",
+    "click>=8.1,<9",
+    "huggingface-hub>=0.25,<1",
+    # Shared taxonomy + span alignment + the eval harness. Until europriv-bench is published to
+    # an index, `make install` provides it via the sibling editable install.
+    "europriv-bench>=0.1",
+]
+
+[project.optional-dependencies]
+# Training/inference backends are optional so the SDK + config layer stay light.
+hf = ["transformers>=4.56", "torch>=2.4", "datasets>=4.0", "peft>=0.13", "trl>=0.11"]
+mlx = ["mlx-lm>=0.18"]
+gliner = ["gliner>=0.2"]
+dev = ["pytest>=8.0", "ruff>=0.11", "coverage>=7.0"]
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["klusai*"]
+namespaces = true        # PEP 420: klusai/ and klusai/privacy/ carry no __init__.py
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["klusai.privacy.models", "klusai.privacy.sdk"]
