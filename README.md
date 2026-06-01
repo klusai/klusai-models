@@ -31,6 +31,28 @@ Import roots are the PEP 420 namespace `klusai.privacy.models` and `klusai.priva
 Shared taxonomy + span alignment + the eval harness come from `europriv_bench` (a dependency).
 Scripts run as `python scripts/x.py` from the repo root (research-repo convention).
 
+## Backends & extras
+
+The training/inference backends are optional extras so the SDK + config layer stay light.
+**`hf` and `mlx` are separate, non-combinable install paths — never `pip install .[hf,mlx]`.**
+Both transitively pull `transformers`, but they co-constrain it incompatibly: the `hf`
+training stack (and the privacy-filter MoE arch) needs `transformers>=5.0`, while older
+`mlx-lm` releases cap/exact-pin `transformers` below 5.0 (the 4.57.x band found in KLU-11),
+so resolving them together is unsatisfiable. Install whichever single backend the target
+environment needs; encoder training (which never uses MLX) and the MLX inference path live
+in different environments.
+
+| Model family (`scripts/train.py`) | Extra | Backend(s) |
+| --- | --- | --- |
+| `moe-finetune` (privacy-filter MoE, primary) | `mlx` (Apple Silicon) **or** `hf` (CUDA) | `mlx` / `cuda` |
+| `xlmr-ner` (XLM-R / mDeBERTa token-classification) | `hf` | `cuda` (HF/Torch) |
+| `classifier` (sensitivity/doc-level) | `hf` | `cuda` (HF/Torch) |
+| `anon-lora` (LoRA anonymizer LLM) | `hf` | `cuda` (HF/Torch) |
+| `gliner` | `gliner` | HF/Torch |
+
+Per KLU-11, the encoder families (`xlmr-ner`, `classifier`) do not use MLX — MLX is only for
+the MoE / causal-LM track on Mac Studio. Pick `mlx` **or** `hf`, never both.
+
 ## Usage
 
 ```bash
