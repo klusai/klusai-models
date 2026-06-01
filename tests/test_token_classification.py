@@ -8,7 +8,11 @@ labels, so it gets a deterministic, dependency-free test (no model download)."""
 from __future__ import annotations
 
 from europriv_bench.taxonomy import bioes_labels
-from klusai.privacy.models.training.token_classification import _bioes_from_spans, resolve_device
+from klusai.privacy.models.training.token_classification import (
+    _bioes_from_spans,
+    resolve_device,
+    resolve_max_util_profile,
+)
 
 _LABELS = bioes_labels()
 _L2I = {v: k for k, v in enumerate(_LABELS)}
@@ -91,3 +95,61 @@ def test_unavailable_accelerator_falls_back_to_cpu(monkeypatch):
     assert resolve_device("mps", cpu=False) == "cpu"
     assert resolve_device("cuda", cpu=False) == "cpu"
     assert resolve_device("auto", cpu=False) == "cpu"
+
+
+# --- KLU-48: max-utilization profile resolution ------------------------------------------------
+# The profile is the Mac default: MPS turns it on (batch scaled up + DataLoader workers); CPU/CUDA
+# leave the incoming batch untouched (no GPU to feed / already saturated). These cover the pure
+# resolution logic without needing a model on device (the auto-probe is exercised by the smoke run).
+
+
+def test_max_util_noop_on_cpu():
+    p = resolve_max_util_profile(
+        "cpu", max_util=True, batch_size=16, batch_override=None, num_workers=None, bf16=False
+    )
+    assert not p.enabled
+    assert p.batch_size == 16          # untouched
+    assert p.num_workers == 0          # no extra workers on CPU
+    assert not p.bf16
+
+
+def test_max_util_noop_on_cuda():
+    p = resolve_max_util_profile(
+        "cuda", max_util=True, batch_size=8, batch_override=None, num_workers=None, bf16=False
+    )
+    assert not p.enabled
+    assert p.batch_size == 8
+
+
+def test_max_util_disabled_flag_is_noop_even_on_mps():
+    p = resolve_max_util_profile(
+        "mps", max_util=False, batch_size=16, batch_override=None, num_workers=None, bf16=False
+    )
+    assert not p.enabled
+    assert p.batch_size == 16
+    assert p.num_workers == 0
+
+
+def test_max_util_on_mps_with_explicit_batch_skips_probe():
+    # explicit override -> no model needed, batch honored, explicit workers honored
+    p = resolve_max_util_profile(
+        "mps", max_util=True, batch_size=16, batch_override=128, num_workers=4, bf16=True
+    )
+    assert p.enabled
+    assert p.batch_size == 128
+    assert p.num_workers == 4              # explicit opt-in honored
+    assert p.persistent_workers is False   # KLU-48: never persistent (macOS spawn exit-hang)
+    assert p.bf16 is True
+    assert any("override" in line for line in p.probe_log)
+
+
+def test_max_util_workers_opt_in_default_zero():
+    # KLU-48: workers are opt-in — no throughput win + macOS spawn exit-hang — so default is 0
+    # even with max-util on (the batch bump is the only default knob).
+    p = resolve_max_util_profile(
+        "mps", max_util=True, batch_size=16, batch_override=64, num_workers=None, bf16=False
+    )
+    assert p.enabled
+    assert p.batch_size == 64
+    assert p.num_workers == 0
+    assert p.persistent_workers is False

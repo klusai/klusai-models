@@ -1,0 +1,51 @@
+{
+  "base_model": "microsoft/mdeberta-v3-base",
+  "dataset": "klusai/ds-kp-general-ro-50k",
+  "config": {
+    "epochs": 2,
+    "lr": 0.0005,
+    "lora_rank": 16,
+    "max_train": 2400,
+    "max_eval": 400,
+    "seed": 0
+  },
+  "before": {
+    "label": "before",
+    "resolved_device": "mps",
+    "max_util": false,
+    "effective_batch_size": 16,
+    "num_workers": 0,
+    "bf16": false,
+    "train_examples": 2400,
+    "epochs": 2,
+    "wall_clock_s": 33.77,
+    "samples_per_s": 189.24,
+    "wall_samples_per_s": 142.13,
+    "eval_loss": 0.00048222256009466946,
+    "peak_mps_mem_mb": 7470.8
+  },
+  "after": {
+    "label": "after",
+    "resolved_device": "mps",
+    "max_util": true,
+    "effective_batch_size": 64,
+    "num_workers": 8,
+    "bf16": false,
+    "train_examples": 2400,
+    "epochs": 2,
+    "wall_clock_s": 131.6,
+    "samples_per_s": 93.6,
+    "wall_samples_per_s": 36.47,
+    "eval_loss": 0.02825399488210678,
+    "peak_mps_mem_mb": 21683.6
+  },
+  "samples_per_s_speedup": 0.49,
+  "eval_loss_abs_delta_after_vs_before": 0.027772,
+  "power_readable": false,
+  "power_command": "sudo powermetrics --samplers gpu_power -i 1000 -n 10",
+  "power_tools_present": {
+    "powermetrics": true,
+    "macmon": false,
+    "asitop": false
+  }
+}

@@ -60,6 +60,10 @@ def _run(cfg: TrainingConfig) -> None:
             cpu=opts.get("cpu", False),
             threads=opts.get("threads", 4),
             device=opts.get("device"),
+            max_util=opts.get("max_util"),
+            max_util_batch_size=opts.get("max_util_batch_size"),
+            num_workers=opts.get("num_workers"),
+            bf16=opts.get("bf16", False),
         )
         logger.info(
             "done: %s (%d train / %d eval, %d epochs, eval_loss=%s, pushed=%s) → %s",
@@ -101,6 +105,36 @@ def _common(f):
         "Overrides --cpu/--gpu; CPU is the guaranteed fallback when the requested device is absent.",
     )(f)
     f = click.option("--threads", type=int, default=4, help="CPU BLAS threads when device=cpu.")(f)
+    # KLU-48 max-utilization profile (Mac GPU / MPS). Default ON for mps, OFF on CPU/CUDA.
+    f = click.option(
+        "--max-util/--no-max-util",
+        "max_util",
+        default=None,
+        help="KLU-48: opt-in max-utilization profile (MPS) — memory-guarded auto-probed larger "
+        "batch (+ optional workers). OFF by default everywhere: KLU-48 measured that this 280M "
+        "encoder is memory-bandwidth-bound and already near-saturated at batch 16, so scaling it "
+        "regresses throughput (see docs/klu-48-max-util.md). Kept for denser models.",
+    )(f)
+    f = click.option(
+        "--max-util-batch-size",
+        type=int,
+        default=None,
+        help="Override the auto-probed max-util batch size (skips the probe).",
+    )(f)
+    f = click.option(
+        "--num-workers",
+        type=int,
+        default=None,
+        help="DataLoader worker processes (max-util). Default 0 (opt-in): workers give no win here "
+        "and deadlock at exit under macOS spawn (KLU-48).",
+    )(f)
+    f = click.option(
+        "--bf16/--no-bf16",
+        "bf16",
+        default=False,
+        help="KLU-48: enable bf16 autocast on MPS. OFF by default — no MPS throughput win and "
+        "fp32 is numerically matched to CPU (KLU-45/48).",
+    )(f)
     return f
 
 
@@ -108,7 +142,8 @@ def _register(fam: Family) -> None:
     @cli.command(name=fam.value)
     @_common
     def _cmd(base_model, dataset, output_repo, backend, epochs, lr, batch_size, lora_rank,
-             max_train, max_eval, output_dir, push, cpu, device, threads):
+             max_train, max_eval, output_dir, push, cpu, device, threads,
+             max_util, max_util_batch_size, num_workers, bf16):
         _run(TrainingConfig(
             family=fam, base_model=base_model, dataset=dataset, output_repo=output_repo,
             backend=Backend(backend), epochs=epochs, lr=lr, batch_size=batch_size,
@@ -116,6 +151,8 @@ def _register(fam: Family) -> None:
             extra={
                 "max_train": max_train, "max_eval": max_eval, "output_dir": output_dir,
                 "push": push, "cpu": cpu, "device": device, "threads": threads,
+                "max_util": max_util, "max_util_batch_size": max_util_batch_size,
+                "num_workers": num_workers, "bf16": bf16,
             },
         ))
 
