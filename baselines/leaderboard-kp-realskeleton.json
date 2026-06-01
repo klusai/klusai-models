@@ -1,5 +1,5 @@
 {
-  "schema": 2,
+  "schema": 3,
   "entries": {
     "kp-model::klusai/kp-deid-mdeberta-280m": [
       {
@@ -28,14 +28,14 @@
         ],
         "scores": {
           "entity_f1": {
-            "precision": 0.6415253285409412,
-            "recall": 0.7299041533546325,
-            "f1": 0.6828670492587279
+            "precision": 0.6863631412700142,
+            "recall": 0.8053035143769968,
+            "f1": 0.7410913795131131
           },
           "entity_f2": {
-            "precision": 0.6415253285409412,
-            "recall": 0.7299041533546325,
-            "f2": 0.7103325622465985
+            "precision": 0.6863631412700142,
+            "recall": 0.8053035143769968,
+            "f2": 0.7783281045428719
           },
           "cnp_leakage": {
             "cnp_total": 1520.0,
@@ -48,6 +48,8 @@
             "leaked_quasi_identifiers": 0.0
           }
         },
+        "contamination": "clean_held_out",
+        "config_status": "dev",
         "europriv_bench_version": "0.2.0",
         "taxonomy_version": "0.2.0",
         "dataset": {
@@ -55,7 +57,7 @@
           "config": "ro-realskeleton-v1",
           "split": "test"
         },
-        "timestamp": "2026-06-01T16:45:14.744728+00:00"
+        "timestamp": "2026-06-01T18:10:13.228013+00:00"
       }
     ]
   }
