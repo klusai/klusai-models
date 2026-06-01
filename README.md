@@ -33,6 +33,46 @@ matches CPU within noise (see [`docs/klu-45-mps-vs-cpu.md`](docs/klu-45-mps-vs-c
 the **guaranteed fallback** — if MPS is unavailable, `--device mps`/`auto` transparently drops to
 CPU. `--cpu/--gpu` is the legacy KLU-17 switch and is superseded by `--device`.
 
+#### Max-utilization on the Mac GPU (KLU-48)
+
+KLU-48 set out to make Mac training **saturate the M3 Ultra** — the human saw only ~68 W at
+batch 16 and suspected the GPU was starved. We measured it directly
+([`docs/klu-48-max-util.md`](docs/klu-48-max-util.md)) and the **premise turned out to be wrong
+for this model**: the 280M mDeBERTa encoder is **memory-bandwidth-bound and already near-saturated
+at batch 16** on this GPU. Measured on the same kp-deid finetune slice (real
+`ds-kp-general-ro`, 2400 train / 2 epochs):
+
+| config | samples/s | eval_loss | notes |
+|---|---|---|---|
+| **batch 16, single-process (default)** | **189** | 0.0005 | the optimum |
+| batch 64, 8 workers | 94 | 0.028 | **0.49x — slower** |
+| batch 256 (auto-fill memory) | 24 | 2.73 | **0.14x**, 72/96 GB, MPS thrash ~13 s/step, no convergence |
+
+Throughput is flat (~58–64 samples/s) from batch 16→96 on full-length synthetic batches; bf16
+autocast gives no MPS throughput win; multi-process DataLoader workers give no win for this light
+collation **and deadlock at process exit under macOS `spawn`**. So **no batch size takes this
+encoder to ≥150 W** — the ~68 W is mostly intrinsic to a 280M model on a 76-TFLOP GPU, not
+starvation, and scaling the batch only regresses throughput and breaks convergence.
+
+**Decision: the Mac default stays plain batch-16 single-process fp32 (the measured max-util
+config) — it never regresses.** The `--max-util` flag, a memory-guarded batch auto-probe, and
+(opt-in) workers ship as **infrastructure for the denser MoE track**, where the large-batch lever
+does pay off, but are **off by default** for `xlmr-ner`:
+
+```bash
+python scripts/train.py xlmr-ner ... --device mps                        # default: batch-16, optimum
+python scripts/train.py xlmr-ner ... --device mps --max-util             # opt in (denser models)
+python scripts/train.py xlmr-ner ... --device mps --max-util --max-util-batch-size 48 --num-workers 4
+```
+
+Reproduce the numbers: `python scripts/bench_klu48_max_util.py` (writes
+`docs/klu-48-max-util.json`). To read sustained package/GPU power yourself while a run trains
+(`sudo`; `powermetrics` is the only reader present — `macmon`/`asitop` are not installed):
+
+```bash
+sudo powermetrics --samplers gpu_power -i 1000 -n 10
+```
+
 ## Layout
 
 ```

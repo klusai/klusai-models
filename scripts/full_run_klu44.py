@@ -30,6 +30,7 @@ from klusai.privacy.models.logger import get_logger
 from klusai.privacy.models.training.token_classification import (
     _bioes_from_spans,
     resolve_device,
+    resolve_max_util_profile,
 )
 
 logger = get_logger("full_run_klu44")
@@ -92,7 +93,9 @@ def _encoder(tok, label2id, max_length):
 
 
 def _make_trainer(base_model, train_ds, eval_ds, tok, labels, id2label, label2id, *,
-                  lr, lora_rank, epochs, batch_size, output_dir, resolved_device, seed, eval_only=False):
+                  lr, lora_rank, epochs, batch_size, output_dir, resolved_device, seed,
+                  max_util=None, max_util_batch_size=None, num_workers=None, bf16=False,
+                  eval_only=False):
     from peft import LoraConfig, TaskType, get_peft_model
     from transformers import (
         AutoModelForTokenClassification,
@@ -114,11 +117,41 @@ def _make_trainer(base_model, train_ds, eval_ds, tok, labels, id2label, label2id
     model = get_peft_model(model, peft_cfg)
     model.print_trainable_parameters()
 
+    collator = DataCollatorForTokenClassification(tok)
+
+    # KLU-48: max-util profile is OPT-IN (off by default) — for this 280M encoder plain batch-16
+    # single-process fp32 is already the measured throughput optimum on MPS; scaling the batch /
+    # adding workers regresses it (docs/klu-48-max-util.md). When opted in, auto-probe the largest
+    # batch (memory-guarded) off the eval slice.
+    if max_util is None:
+        max_util = False
+    from klusai.privacy.models.training.token_classification import MAX_UTIL_BATCH_CANDIDATES
+
+    probe_features = [eval_ds[i] for i in range(min(len(eval_ds), MAX_UTIL_BATCH_CANDIDATES[0]))]
+    profile = resolve_max_util_profile(
+        resolved_device,
+        max_util=max_util,
+        batch_size=batch_size,
+        batch_override=max_util_batch_size,
+        num_workers=num_workers,
+        bf16=bf16,
+        model=model,
+        collator=collator,
+        sample_features=probe_features,
+    )
+    if profile.enabled:
+        logger.info(
+            "max-util ON (mps): batch %d -> %d, num_workers=%d, bf16=%s | probe: %s",
+            batch_size, profile.batch_size, profile.num_workers, profile.bf16,
+            "; ".join(profile.probe_log),
+        )
+    eff_batch_size = profile.batch_size
+
     args = TrainingArguments(
         output_dir=output_dir,
         num_train_epochs=epochs,
-        per_device_train_batch_size=batch_size,
-        per_device_eval_batch_size=batch_size,
+        per_device_train_batch_size=eff_batch_size,
+        per_device_eval_batch_size=profile.eval_batch_size,
         learning_rate=lr,
         eval_strategy="epoch",
         save_strategy="no",
@@ -126,13 +159,17 @@ def _make_trainer(base_model, train_ds, eval_ds, tok, labels, id2label, label2id
         seed=seed,
         report_to=[],
         use_cpu=(resolved_device == "cpu"),
+        dataloader_num_workers=profile.num_workers,
+        dataloader_persistent_workers=profile.persistent_workers,
+        dataloader_pin_memory=profile.pin_memory,
+        bf16=profile.bf16,
     )
     trainer = Trainer(
         model=model,
         args=args,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
-        data_collator=DataCollatorForTokenClassification(tok),
+        data_collator=collator,
     )
     return model, trainer
 
@@ -151,8 +188,18 @@ def _make_trainer(base_model, train_ds, eval_ds, tok, labels, id2label, label2id
 @click.option("--seed", type=int, default=0)
 @click.option("--push/--no-push", default=False)
 @click.option("--metrics-out", default="runs/klu44-train-metrics.json")
+@click.option("--max-util/--no-max-util", "max_util", default=None,
+              help="KLU-48 max-utilization profile (MPS), opt-in. OFF by default — batch-16 is the "
+              "measured optimum for this encoder (docs/klu-48-max-util.md).")
+@click.option("--max-util-batch-size", type=int, default=None,
+              help="Override the auto-probed max-util batch size (skips the probe).")
+@click.option("--num-workers", type=int, default=None,
+              help="DataLoader workers (max-util). Default 0 (opt-in; macOS spawn exit-hang).")
+@click.option("--bf16/--no-bf16", "bf16", default=False,
+              help="Enable bf16 autocast on MPS. OFF by default (no win; fp32 matches CPU; KLU-45/48).")
 def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep_subset,
-         batch_size, max_length, eval_fraction, seed, push, metrics_out):
+         batch_size, max_length, eval_fraction, seed, push, metrics_out,
+         max_util, max_util_batch_size, num_workers, bf16):
     import os
 
     import torch
@@ -198,7 +245,8 @@ def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep
             base_model, sweep_train, eval_ds, tok, labels, id2label, label2id,
             lr=cfg["lr"], lora_rank=cfg["lora_rank"], epochs=sweep_epochs,
             batch_size=batch_size, output_dir=f"{output_dir}-sweep", resolved_device=resolved_device,
-            seed=seed,
+            seed=seed, max_util=max_util, max_util_batch_size=max_util_batch_size,
+            num_workers=num_workers, bf16=bf16,
         )
         trainer.train()
         metrics = trainer.evaluate()
@@ -222,6 +270,8 @@ def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep
         base_model, full_train_ds, eval_ds, tok, labels, id2label, label2id,
         lr=best.lr, lora_rank=best.lora_rank, epochs=epochs,
         batch_size=batch_size, output_dir=output_dir, resolved_device=resolved_device, seed=seed,
+        max_util=max_util, max_util_batch_size=max_util_batch_size,
+        num_workers=num_workers, bf16=bf16,
     )
     trainer.train()
     final_metrics = trainer.evaluate()
@@ -253,6 +303,10 @@ def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep
         "sweep_epochs": sweep_epochs,
         "sweep_subset": sweep_train.num_rows,
         "batch_size": batch_size,
+        "effective_batch_size": trainer.args.per_device_train_batch_size,  # KLU-48: post max-util
+        "max_util": trainer.args.dataloader_num_workers > 0,
+        "num_workers": trainer.args.dataloader_num_workers,
+        "bf16": bool(trainer.args.bf16),
         "max_length": max_length,
         "sweep": [asdict(r) for r in sweep_results],
         "best": asdict(best),
