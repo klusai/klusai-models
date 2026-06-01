@@ -8,7 +8,7 @@ labels, so it gets a deterministic, dependency-free test (no model download)."""
 from __future__ import annotations
 
 from europriv_bench.taxonomy import bioes_labels
-from klusai.privacy.models.training.token_classification import _bioes_from_spans
+from klusai.privacy.models.training.token_classification import _bioes_from_spans, resolve_device
 
 _LABELS = bioes_labels()
 _L2I = {v: k for k, v in enumerate(_LABELS)}
@@ -60,3 +60,34 @@ def test_all_emitted_labels_in_bioes_space():
     valid = set(_LABELS) | {"IGN"}
     assert all(t in valid for t in out)
     assert out == ["B-PERSON", "E-PERSON", "S-NATIONAL_ID"]
+
+
+# --- KLU-45: device selection (cpu/mps/cuda) ---------------------------------------------------
+# resolve_device must never raise and must always be able to fall back to CPU (the guaranteed
+# tier on every machine); explicit cpu is honored regardless of accelerators present.
+
+
+def test_explicit_cpu_always_resolves_cpu():
+    assert resolve_device("cpu", cpu=False) == "cpu"
+    assert resolve_device("cpu", cpu=True) == "cpu"
+
+
+def test_legacy_cpu_bool_maps_to_cpu_when_device_unset():
+    # KLU-17 callers pass cpu=True and no device -> must keep resolving to cpu.
+    assert resolve_device(None, cpu=True) == "cpu"
+
+
+def test_resolved_device_is_always_valid():
+    for req in (None, "auto", "cpu", "mps", "cuda"):
+        for cpu in (True, False):
+            assert resolve_device(req, cpu=cpu) in {"cpu", "mps", "cuda"}
+
+
+def test_unavailable_accelerator_falls_back_to_cpu(monkeypatch):
+    import torch
+
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    assert resolve_device("mps", cpu=False) == "cpu"
+    assert resolve_device("cuda", cpu=False) == "cpu"
+    assert resolve_device("auto", cpu=False) == "cpu"

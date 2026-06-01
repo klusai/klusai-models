@@ -16,6 +16,23 @@ Model layer for the **KlusAI Privacy (KP)** program: finetuning, evaluation, and
 **device-agnostic** (`--backend mlx|cuda`); datasets/checkpoints sync via HF Hub so a droplet
 is stateless and disposable. MLX runs publish an extra `-mlx` variant.
 
+### Mac-tier device for the encoder family (KLU-45)
+
+The `xlmr-ner` token-classification family runs on PyTorch (it never uses MLX — KLU-11). On the
+Mac Studio it can train on **either the CPU or the GPU (Metal/MPS)**; pick with `--device`:
+
+```bash
+python scripts/train.py xlmr-ner ... --device mps   # Mac GPU (Metal)
+python scripts/train.py xlmr-ner ... --device cpu --threads 8
+python scripts/train.py xlmr-ner ... --device auto  # best Mac-tier device (MPS if present)
+```
+
+**Default Mac-tier device: `mps`.** KLU-45 benchmarked `mdeberta-v3-base` LoRA (same smoke task
+as KLU-17) on `mps` vs CPU(4)/CPU(8): MPS is materially faster and its loss/eval-loss curve
+matches CPU within noise (see [`docs/klu-45-mps-vs-cpu.md`](docs/klu-45-mps-vs-cpu.md)). CPU is
+the **guaranteed fallback** — if MPS is unavailable, `--device mps`/`auto` transparently drops to
+CPU. `--cpu/--gpu` is the legacy KLU-17 switch and is superseded by `--device`.
+
 ## Layout
 
 ```

@@ -1,0 +1,62 @@
+{
+  "base_model": "microsoft/mdeberta-v3-base",
+  "dataset": "klusai/ds-kp-general-ro-50k",
+  "config": {
+    "epochs": 2,
+    "lr": 0.0005,
+    "batch_size": 16,
+    "lora_rank": 16,
+    "max_train": 800,
+    "max_eval": 200,
+    "seed": 0
+  },
+  "results": [
+    {
+      "label": "cpu4",
+      "requested_device": "cpu",
+      "resolved_device": "cpu",
+      "threads": 4,
+      "train_examples": 800,
+      "eval_examples": 200,
+      "epochs": 2,
+      "wall_clock_s": 107.92,
+      "wall_clock_per_epoch_s": 53.96,
+      "samples_per_s": 14.83,
+      "eval_loss": 0.01020077709108591,
+      "peak_rss_mb_after": 6963.7,
+      "peak_rss_mb_delta": 6773.5
+    },
+    {
+      "label": "cpu8",
+      "requested_device": "cpu",
+      "resolved_device": "cpu",
+      "threads": 8,
+      "train_examples": 800,
+      "eval_examples": 200,
+      "epochs": 2,
+      "wall_clock_s": 104.16,
+      "wall_clock_per_epoch_s": 52.08,
+      "samples_per_s": 15.36,
+      "eval_loss": 0.019375091418623924,
+      "peak_rss_mb_after": 7002.1,
+      "peak_rss_mb_delta": 38.5
+    },
+    {
+      "label": "mps",
+      "requested_device": "mps",
+      "resolved_device": "mps",
+      "threads": null,
+      "train_examples": 800,
+      "eval_examples": 200,
+      "epochs": 2,
+      "wall_clock_s": 13.94,
+      "wall_clock_per_epoch_s": 6.97,
+      "samples_per_s": 114.81,
+      "eval_loss": 0.022578038275241852,
+      "peak_rss_mb_after": 7002.1,
+      "peak_rss_mb_delta": 0.0
+    }
+  ],
+  "mps_vs_cpu4_eval_loss_abs_delta": 0.012377,
+  "mps_vs_cpu4_speedup": 7.74
+}
