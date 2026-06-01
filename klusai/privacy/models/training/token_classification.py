@@ -5,8 +5,10 @@ label space (``europriv_bench.taxonomy.bioes_labels()``) so a trained model is *
 scoreable on EuroPriv-Bench with no native→KP crosswalk (see the ``kp-model`` adapter).
 
 Decided in KLU-11 (MLX rejected for this encoder family): ``AutoModelForTokenClassification`` +
-PEFT ``TaskType.TOKEN_CLS`` LoRA on ``query_proj/key_proj/value_proj``. Compute is CPU-friendly
-for a bounded smoke run; the same code runs on a CUDA droplet for a full run (KLU-14).
+PEFT ``TaskType.TOKEN_CLS`` LoRA on ``query_proj/key_proj/value_proj``. Device is selectable via
+``resolve_device`` (KLU-45): the Mac GPU (Metal/MPS) is the default Mac-tier device — ~7.7x faster
+than CPU and numerically matching it — with CPU as the guaranteed fallback; the same code runs on
+a CUDA droplet for a full run (KLU-14).
 
 Training data is the merged LocalePack / ``klusai/ds-kp-general-*`` schema:
 ``{text, spans:[{start,end,label}], language, domain}`` — gold spans already carry KP labels.
@@ -36,6 +38,7 @@ class TokenClassResult:
     epochs: int
     eval_loss: float | None
     pushed: bool
+    device: str = "cpu"
 
 
 def _bioes_from_spans(
@@ -96,6 +99,45 @@ def _bioes_from_spans(
     return out
 
 
+def resolve_device(device: str | None, *, cpu: bool) -> str:
+    """Resolve the requested training device to one of ``cpu`` / ``mps`` / ``cuda``.
+
+    KLU-45 added the Mac GPU (Metal/MPS) path. Selection precedence:
+
+    * an explicit ``device`` ("cpu"/"mps"/"cuda") is honored if actually available, else falls
+      back to CPU with a warning (CPU is the *guaranteed* fallback on every tier);
+    * ``device="auto"`` (or ``None``) picks the best Mac-tier device: MPS when present, else CPU
+      — CUDA is only chosen by ``auto`` when no MPS but a CUDA GPU is visible (DO droplet);
+    * the legacy ``cpu=True`` bool (KLU-17 default) maps to ``device="cpu"`` when ``device`` is
+      unset, so existing callers keep their behavior.
+    """
+    import torch
+
+    def _mps_ok() -> bool:
+        return torch.backends.mps.is_available() and torch.backends.mps.is_built()
+
+    req = (device or ("auto" if not cpu else "cpu")).lower()
+
+    if req == "cpu":
+        return "cpu"
+    if req == "mps":
+        if _mps_ok():
+            return "mps"
+        logger.warning("MPS requested but unavailable; falling back to CPU (the guaranteed tier).")
+        return "cpu"
+    if req == "cuda":
+        if torch.cuda.is_available():
+            return "cuda"
+        logger.warning("CUDA requested but unavailable; falling back to CPU.")
+        return "cpu"
+    # auto: best Mac-tier device first (MPS), then CUDA droplet, else CPU.
+    if _mps_ok():
+        return "mps"
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
+
+
 def train_token_classification(
     *,
     base_model: str,
@@ -114,6 +156,7 @@ def train_token_classification(
     push: bool = False,
     cpu: bool = True,
     threads: int = 4,
+    device: str | None = None,
 ) -> TokenClassResult:
     """Fine-tune an encoder for KP token classification (LoRA), optionally push a merged model.
 
@@ -134,9 +177,16 @@ def train_token_classification(
 
     from europriv_bench.taxonomy import bioes_labels
 
-    if cpu:
+    resolved_device = resolve_device(device, cpu=cpu)
+    if resolved_device == "cpu":
         os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
         torch.set_num_threads(threads)
+        logger.info("device=cpu (threads=%d)", threads)
+    else:
+        # On MPS some ops may not be implemented; PYTORCH_ENABLE_MPS_FALLBACK=1 lets them run on
+        # CPU instead of hard-erroring. Harmless on CUDA. Thread cap is a CPU-only knob.
+        os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+        logger.info("device=%s", resolved_device)
 
     labels = bioes_labels()
     id2label = dict(enumerate(labels))
@@ -204,7 +254,9 @@ def train_token_classification(
         logging_steps=20,
         seed=seed,
         report_to=[],
-        use_cpu=cpu,
+        # use_cpu=True pins Trainer to CPU; for mps/cuda we let Trainer place the model on the
+        # accelerator it detects (MPS is auto-selected on Apple Silicon when use_cpu is False).
+        use_cpu=(resolved_device == "cpu"),
     )
     trainer = Trainer(
         model=model,
@@ -220,7 +272,9 @@ def train_token_classification(
     logger.info("eval_loss=%s", eval_loss)
 
     # Merge LoRA into the base so the published model is a plain token-classifier the benchmark
-    # pipeline can load with from_pretrained (no peft required at inference).
+    # pipeline can load with from_pretrained (no peft required at inference). Move back to CPU
+    # first so the merge/save is device-independent (and avoids MPS fp32 save quirks).
+    model = model.to("cpu")
     merged = model.merge_and_unload()
     merged.save_pretrained(output_dir)
     tok.save_pretrained(output_dir)
@@ -242,4 +296,5 @@ def train_token_classification(
         epochs=epochs,
         eval_loss=eval_loss,
         pushed=pushed,
+        device=resolved_device,
     )

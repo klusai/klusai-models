@@ -40,6 +40,11 @@ def _run(cfg: TrainingConfig) -> None:
         from klusai.privacy.models.training.token_classification import train_token_classification
 
         opts = cfg.extra
+        # KLU-45: on the Mac tier this family defaults to the GPU (MPS) — materially faster than
+        # CPU and numerically stable (docs/klu-45-mps-vs-cpu.md). Device resolution lives in the
+        # backend's resolve_device(): with no --device, --gpu (the default) → "auto" (MPS if
+        # present, else CUDA droplet, else CPU); CPU stays the guaranteed fallback, selectable with
+        # --device cpu or the legacy --cpu.
         result = train_token_classification(
             base_model=cfg.base_model,
             dataset=cfg.dataset,
@@ -52,8 +57,9 @@ def _run(cfg: TrainingConfig) -> None:
             max_train=opts.get("max_train"),
             max_eval=opts.get("max_eval"),
             push=opts.get("push", False),
-            cpu=opts.get("cpu", True),
+            cpu=opts.get("cpu", False),
             threads=opts.get("threads", 4),
+            device=opts.get("device"),
         )
         logger.info(
             "done: %s (%d train / %d eval, %d epochs, eval_loss=%s, pushed=%s) → %s",
@@ -86,8 +92,15 @@ def _common(f):
     f = click.option("--max-eval", type=int, default=None, help="Cap eval examples.")(f)
     f = click.option("--output-dir", default=None, help="Local output dir (default runs/<name>).")(f)
     f = click.option("--push/--no-push", default=False, help="push_to_hub the trained model.")(f)
-    f = click.option("--cpu/--gpu", default=True, help="Force CPU (smoke runs) or allow GPU.")(f)
-    f = click.option("--threads", type=int, default=4, help="CPU BLAS threads when --cpu.")(f)
+    f = click.option("--cpu/--gpu", default=False, help="Legacy: force CPU (--cpu) or allow accelerator (--gpu, default). Superseded by --device; KLU-45 made the Mac GPU/MPS the default for xlmr-ner.")(f)
+    f = click.option(
+        "--device",
+        type=click.Choice(["auto", "cpu", "mps", "cuda"]),
+        default=None,
+        help="Training device (KLU-45). 'mps' = Mac GPU (Metal), 'auto' = best Mac-tier device. "
+        "Overrides --cpu/--gpu; CPU is the guaranteed fallback when the requested device is absent.",
+    )(f)
+    f = click.option("--threads", type=int, default=4, help="CPU BLAS threads when device=cpu.")(f)
     return f
 
 
@@ -95,14 +108,14 @@ def _register(fam: Family) -> None:
     @cli.command(name=fam.value)
     @_common
     def _cmd(base_model, dataset, output_repo, backend, epochs, lr, batch_size, lora_rank,
-             max_train, max_eval, output_dir, push, cpu, threads):
+             max_train, max_eval, output_dir, push, cpu, device, threads):
         _run(TrainingConfig(
             family=fam, base_model=base_model, dataset=dataset, output_repo=output_repo,
             backend=Backend(backend), epochs=epochs, lr=lr, batch_size=batch_size,
             lora_rank=lora_rank,
             extra={
                 "max_train": max_train, "max_eval": max_eval, "output_dir": output_dir,
-                "push": push, "cpu": cpu, "threads": threads,
+                "push": push, "cpu": cpu, "device": device, "threads": threads,
             },
         ))
 
