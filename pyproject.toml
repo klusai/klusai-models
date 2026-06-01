@@ -15,8 +15,19 @@ dependencies = [
 
 [project.optional-dependencies]
 # Training/inference backends are optional so the SDK + config layer stay light.
+#
+# `hf` and `mlx` are SEPARATE, NON-COMBINABLE install paths — never `pip install .[hf,mlx]`.
+# Both transitively pull `transformers`, but they co-constrain it incompatibly: the `hf`
+# training stack (and the privacy-filter MoE arch) needs transformers>=5.0, while older
+# mlx-lm releases cap/exact-pin transformers below 5.0 (the 4.57.x band found in KLU-11),
+# so resolving the two extras together backtracks into an unsatisfiable set. Per KLU-11,
+# encoder/token-classification training (xlmr-ner, classifier) never uses MLX, so there is
+# no real install path that needs both — keep them in separate environments. See README
+# "Backends & extras" for the family→extra map.
 hf = ["transformers>=5.0", "torch>=2.4", "datasets>=4.0", "peft>=0.13", "trl>=0.11"]
-mlx = ["mlx-lm>=0.18"]
+# mlx-lm>=0.30.7 is the first line that requires transformers>=5.0 (earlier releases cap or
+# exact-pin it lower), keeping the MLX path consistent with the privacy-filter MoE arch.
+mlx = ["mlx-lm>=0.30.7"]
 gliner = ["gliner>=0.2"]
 dev = ["pytest>=8.0", "ruff>=0.11", "coverage>=7.0"]
 
