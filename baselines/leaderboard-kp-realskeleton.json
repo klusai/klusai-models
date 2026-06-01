@@ -38,12 +38,12 @@
             "f2": 0.7783281045428719
           },
           "cnp_leakage": {
-            "cnp_total": 1520.0,
-            "cnp_detected": 1520.0,
+            "cnp_total": 1123.0,
+            "cnp_detected": 1123.0,
             "cnp_missed": 0.0,
             "leak_rate": 0.0,
-            "leak_rate_ci_low": 2.168404344971009e-19,
-            "leak_rate_ci_high": 0.002520894295622453,
+            "leak_rate_ci_low": 0.0,
+            "leak_rate_ci_high": 0.003409036137937588,
             "detection_rate": 1.0,
             "leaked_quasi_identifiers": 0.0
           }
