@@ -1,0 +1,62 @@
+{
+  "schema": 2,
+  "entries": {
+    "kp-model::klusai/kp-deid-mdeberta-280m": [
+      {
+        "spec": "PII Detection + CNP Leakage — Romanian (real-skeleton v1)",
+        "task": "detection",
+        "languages": [
+          "ro"
+        ],
+        "domain": "legal",
+        "adapter": "kp-model",
+        "model_id": "klusai/kp-deid-mdeberta-280m",
+        "n": 1500,
+        "limit": null,
+        "eval_labels": [
+          "ACCOUNT_ID",
+          "ADDRESS",
+          "CASE_NUMBER",
+          "COMPANY_ID",
+          "DATE",
+          "EMAIL",
+          "HEALTH_CONDITION",
+          "NATIONAL_ID",
+          "ORG_PARTY",
+          "PERSON",
+          "PHONE"
+        ],
+        "scores": {
+          "entity_f1": {
+            "precision": 0.6415253285409412,
+            "recall": 0.7299041533546325,
+            "f1": 0.6828670492587279
+          },
+          "entity_f2": {
+            "precision": 0.6415253285409412,
+            "recall": 0.7299041533546325,
+            "f2": 0.7103325622465985
+          },
+          "cnp_leakage": {
+            "cnp_total": 1520.0,
+            "cnp_detected": 1520.0,
+            "cnp_missed": 0.0,
+            "leak_rate": 0.0,
+            "leak_rate_ci_low": 2.168404344971009e-19,
+            "leak_rate_ci_high": 0.002520894295622453,
+            "detection_rate": 1.0,
+            "leaked_quasi_identifiers": 0.0
+          }
+        },
+        "europriv_bench_version": "0.2.0",
+        "taxonomy_version": "0.2.0",
+        "dataset": {
+          "hf_id": "klusai/europriv-bench",
+          "config": "ro-realskeleton-v1",
+          "split": "test"
+        },
+        "timestamp": "2026-06-01T16:45:14.744728+00:00"
+      }
+    ]
+  }
+}
