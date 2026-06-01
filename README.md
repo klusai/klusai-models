@@ -58,8 +58,23 @@ the MoE / causal-LM track on Mac Studio. Pick `mlx` **or** `hf`, never both.
 ```bash
 make install && source .venv/bin/activate
 make check
+
+# Token-classification family (xlmr-ner): transformers + peft LoRA, CPU-feasible.
+# AutoModelForTokenClassification + TaskType.TOKEN_CLS LoRA on query/key/value_proj;
+# labels come from europriv_bench.taxonomy.bioes_labels(). Bounded with --max-train/--epochs.
+python scripts/train.py xlmr-ner --base microsoft/mdeberta-v3-base \
+    --dataset klusai/ds-kp-general-ro-50k --out klusai/kp-deid-mdeberta-280m \
+    --backend cuda --epochs 3 --max-train 4000 --lora-rank 16 --push
+# (encoder family never uses MLX — KLU-11. --backend cuda runs on CPU when no GPU is present;
+#  no -mlx variant is published for this family.)
+
+# MoE continue-finetune (primary track) — lands later.
 python scripts/train.py moe-finetune --base openai/privacy-filter \
     --dataset klusai/ds-kp-legal-ro-50k --out klusai/kp-deid-moe-ro --backend mlx
+
+# Score on EuroPriv-Bench (defers entirely to the harness via its `kp-model` adapter).
+python scripts/evaluate.py --model klusai/kp-deid-mdeberta-280m \
+    --suite ../europriv-bench/evaluations --only ro-realskeleton
 ```
 
 Evaluation always defers to the **europriv-bench** harness (single source of truth for
