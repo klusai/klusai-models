@@ -119,6 +119,11 @@ in different environments.
 Per KLU-11, the encoder families (`xlmr-ner`, `classifier`) do not use MLX — MLX is only for
 the MoE / causal-LM track on Mac Studio. Pick `mlx` **or** `hf`, never both.
 
+> **KLU-46 (spike):** an MLX-core proof-of-concept *can* run a DeBERTa-v2 encoder forward at
+> exact parity with `transformers` (`klusai/privacy/models/mlx_encoder.py`, behind the `mlx`
+> extra) — but the production encoder path stays on PyTorch-MPS. See
+> [`docs/klu-46-mlx-encoder-spike.md`](docs/klu-46-mlx-encoder-spike.md) for the GO/DEFER finding.
+
 ## Usage
 
 ```bash
