@@ -14,7 +14,7 @@ xlmr-ner:
     - name: kp-deid-xlmr-560m
       base_model: FacebookAI/xlm-roberta-large
       params: 560M
-    - name: kp-deid-mdeberta
+    - name: kp-deid-mdeberta-280m
       base_model: microsoft/mdeberta-v3-base
       params: 280M
 
