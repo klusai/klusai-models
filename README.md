@@ -33,6 +33,15 @@ matches CPU within noise (see [`docs/klu-45-mps-vs-cpu.md`](docs/klu-45-mps-vs-c
 the **guaranteed fallback** — if MPS is unavailable, `--device mps`/`auto` transparently drops to
 CPU. `--cpu/--gpu` is the legacy KLU-17 switch and is superseded by `--device`.
 
+> **Note (KLU-54): training `eval_loss` is NOT a model-quality metric.** It is a split-sanity /
+> early-stopping signal only. The training eval split is now **template-disjoint** from train
+> (`template_disjoint_split`; [`docs/klu-54-eval-split.md`](docs/klu-54-eval-split.md)) so the
+> number is meaningful for checkpoint selection — but model **quality** is reported solely by the
+> EuroPriv-Bench harness leaderboard (entity F1 / leak-rate on the contamination-free
+> `ro-realskeleton-v1` track). The low `eval_loss` figures in the KLU-45/48 tables below are from
+> the older leaky split and are used here only to compare *throughput / numerical parity*, never
+> quality.
+
 #### Max-utilization on the Mac GPU (KLU-48)
 
 KLU-48 set out to make Mac training **saturate the M3 Ultra** — the human saw only ~68 W at

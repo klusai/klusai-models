@@ -104,6 +104,93 @@ def _bioes_from_spans(
     return out
 
 
+def template_skeleton(text: str, spans: list[dict]) -> str:
+    """Reduce an example to its *generator template* by blanking every PII surface form.
+
+    The ``ds-kp-general-*`` corpora are produced by a small LocalePack generator: each row is one
+    of a handful of fixed sentence templates with PII slots filled by faker-style surface forms
+    (KLU-54 diagnosis: each 50k corpus has **exactly 6** distinct templates). Replacing each gold
+    span's surface text with ``<LABEL>`` recovers that template, so two rows share a skeleton iff
+    they came from the same template. We split on this skeleton to guarantee eval templates are
+    *never* in train (see ``template_disjoint_split``).
+    """
+    out: list[str] = []
+    prev = 0
+    for sp in sorted(spans, key=lambda s: s["start"]):
+        out.append(text[prev : sp["start"]])
+        out.append(f"<{sp['label']}>")
+        prev = sp["end"]
+    out.append(text[prev:])
+    return "".join(out)
+
+
+def template_disjoint_split(rows, *, eval_fraction: float, seed: int):
+    """Split ``rows`` so train and eval share **no generator template** (KLU-54).
+
+    The old split was a shuffled head of one corpus (``raw.shuffle(seed)[:n_eval]``). Because the
+    corpus has only ~6 templates, that head re-used the *same* templates as the train tail — eval
+    measured memorization of those fixed skeletons (the ~7e-10 / ~2e-5 eval-loss), not
+    generalization. Here we instead hold out **whole templates**: we group rows by
+    ``template_skeleton``, deterministically shuffle the *template* list by ``seed``, and peel
+    templates into eval until we reach ``eval_fraction`` of the rows. Every eval row therefore has
+    a skeleton that appears in **zero** train rows — a provably disjoint, non-trivial held-out set.
+
+    Returns ``(train_rows, eval_rows, info)`` where ``info`` records the template counts and
+    confirms disjointness, for honest logging / metrics.
+    """
+    import collections
+    import hashlib
+
+    texts = rows["text"]
+    spans_col = rows["spans"]
+    skeletons = [template_skeleton(texts[i], spans_col[i]) for i in range(rows.num_rows)]
+    by_skel: dict[str, list[int]] = collections.defaultdict(list)
+    for i, sk in enumerate(skeletons):
+        by_skel[sk].append(i)
+
+    # Deterministic order over templates from ``seed`` (hash so it doesn't track corpus order).
+    def _key(sk: str) -> str:
+        return hashlib.sha1(f"{seed}:{sk}".encode()).hexdigest()
+
+    ordered_skels = sorted(by_skel, key=_key)
+    n = rows.num_rows
+    target_eval = max(1, int(n * eval_fraction))
+
+    # If a single template would swallow >70% of the requested eval budget we'd end up with a
+    # lopsided eval (one giant template). With only ~6 near-equal templates this never trips, but
+    # guard it so a future skewed corpus fails loud rather than producing a silently-bad split.
+    eval_idx: list[int] = []
+    eval_skels: list[str] = []
+    for sk in ordered_skels:
+        if eval_idx and len(eval_idx) >= target_eval:
+            break
+        # Never put *every* template in eval — train must keep at least one template.
+        if len(eval_skels) + 1 >= len(ordered_skels):
+            break
+        eval_idx.extend(by_skel[sk])
+        eval_skels.append(sk)
+
+    eval_set = set(eval_idx)
+    train_idx = [i for i in range(n) if i not in eval_set]
+    train_skels = {skeletons[i] for i in train_idx}
+    eval_only_skels = {skeletons[i] for i in eval_idx}
+    overlap = train_skels & eval_only_skels
+    if overlap:
+        raise RuntimeError(
+            f"template_disjoint_split produced {len(overlap)} overlapping template(s) — "
+            "split is not disjoint; refusing to proceed."
+        )
+    info = {
+        "total_templates": len(by_skel),
+        "eval_templates": len(eval_only_skels),
+        "train_templates": len(train_skels),
+        "eval_rows": len(eval_idx),
+        "train_rows": len(train_idx),
+        "disjoint": True,
+    }
+    return rows.select(train_idx), rows.select(eval_idx), info
+
+
 def resolve_device(device: str | None, *, cpu: bool) -> str:
     """Resolve the requested training device to one of ``cpu`` / ``mps`` / ``cuda``.
 
@@ -441,16 +528,22 @@ def train_token_classification(
         raise RuntimeError(f"{base_model} needs a fast tokenizer (offset mapping) for span alignment")
 
     raw = load_dataset(dataset, split="train")
-    raw = raw.shuffle(seed=seed)
-    n = raw.num_rows
-    n_eval = max(1, int(n * eval_fraction))
-    eval_rows = raw.select(range(n_eval))
-    train_rows = raw.select(range(n_eval, n))
+    # KLU-54: hold out *whole generator templates* so eval shares no template+content with train.
+    # The old `raw.shuffle(seed)[:n_eval]` head re-used the corpus's ~6 templates in both splits, so
+    # eval-loss measured template memorization (~7e-10), not generalization. See template_disjoint_split.
+    train_rows, eval_rows, split_info = template_disjoint_split(
+        raw, eval_fraction=eval_fraction, seed=seed
+    )
+    train_rows = train_rows.shuffle(seed=seed)
+    eval_rows = eval_rows.shuffle(seed=seed)
     if max_train is not None:
         train_rows = train_rows.select(range(min(max_train, train_rows.num_rows)))
     if max_eval is not None:
         eval_rows = eval_rows.select(range(min(max_eval, eval_rows.num_rows)))
-    logger.info("dataset %s: %d train / %d eval examples", dataset, train_rows.num_rows, eval_rows.num_rows)
+    logger.info(
+        "dataset %s: %d train / %d eval examples | template-disjoint split: %s",
+        dataset, train_rows.num_rows, eval_rows.num_rows, split_info,
+    )
 
     def _encode(batch: dict) -> dict:
         enc = tok(

@@ -12,6 +12,8 @@ from klusai.privacy.models.training.token_classification import (
     _bioes_from_spans,
     resolve_device,
     resolve_max_util_profile,
+    template_disjoint_split,
+    template_skeleton,
 )
 
 _LABELS = bioes_labels()
@@ -153,3 +155,76 @@ def test_max_util_workers_opt_in_default_zero():
     assert p.batch_size == 64
     assert p.num_workers == 0
     assert p.persistent_workers is False
+
+
+# --- KLU-54: template-disjoint held-out eval split ---------------------------------------------
+# The old split was a shuffled head of one corpus; because each corpus has only ~6 generator
+# templates, eval re-used train's templates and eval-loss measured memorization (~7e-10). The fix
+# holds out whole templates so eval shares no template+content with train. These tests pin (a) the
+# skeleton reduction and (b) the disjointness guarantee on a tiny in-memory dataset (no download).
+
+
+def test_template_skeleton_blanks_pii_surfaces():
+    # Two rows from the same template with different fillers -> identical skeleton.
+    sk1 = template_skeleton(
+        "Pacient: Ana Pop, CNP 123.",
+        [{"start": 9, "end": 16, "label": "PERSON"}, {"start": 22, "end": 25, "label": "NATIONAL_ID"}],
+    )
+    sk2 = template_skeleton(
+        "Pacient: Ion Ene, CNP 98765.",
+        [{"start": 9, "end": 16, "label": "PERSON"}, {"start": 22, "end": 27, "label": "NATIONAL_ID"}],
+    )
+    assert sk1 == sk2 == "Pacient: <PERSON>, CNP <NATIONAL_ID>."
+    # A structurally different template must differ.
+    sk3 = template_skeleton("Email <EMAIL_FILLER>", [{"start": 6, "end": 19, "label": "EMAIL"}])
+    assert sk3 != sk1
+
+
+def _tiny_ds():
+    # Two templates ("A": person+id, "B": email), 6 rows each, distinct fillers per row.
+    from datasets import Dataset
+
+    rows = []
+    for k in range(6):
+        rows.append({
+            "text": f"Pacient: Nume{k} X, CNP {1000 + k}.",
+            "spans": [
+                {"start": 9, "end": 16, "label": "PERSON"},
+                {"start": 22, "end": 26, "label": "NATIONAL_ID"},
+            ],
+        })
+    for k in range(6):
+        rows.append({
+            "text": f"Contact email user{k}@x.ro azi.",
+            "spans": [{"start": 14, "end": 25, "label": "EMAIL"}],
+        })
+    return Dataset.from_list(rows)
+
+
+def test_template_disjoint_split_is_provably_disjoint():
+    ds = _tiny_ds()
+    train, ev, info = template_disjoint_split(ds, eval_fraction=0.4, seed=0)
+    assert info["disjoint"] is True
+    # No template appears in both splits.
+    train_sk = {template_skeleton(train[i]["text"], train[i]["spans"]) for i in range(train.num_rows)}
+    eval_sk = {template_skeleton(ev[i]["text"], ev[i]["spans"]) for i in range(ev.num_rows)}
+    assert train_sk.isdisjoint(eval_sk)
+    # Every row is accounted for exactly once; both splits non-empty.
+    assert train.num_rows + ev.num_rows == ds.num_rows
+    assert train.num_rows > 0 and ev.num_rows > 0
+
+
+def test_template_disjoint_split_keeps_a_train_template_even_at_high_eval_fraction():
+    # Even asking for most of the data as eval, train must retain >=1 template (so train is usable).
+    ds = _tiny_ds()
+    train, ev, info = template_disjoint_split(ds, eval_fraction=0.95, seed=1)
+    assert train.num_rows > 0
+    assert info["train_templates"] >= 1
+    assert info["eval_templates"] >= 1
+
+
+def test_template_disjoint_split_deterministic_for_seed():
+    ds = _tiny_ds()
+    _, ev_a, _ = template_disjoint_split(ds, eval_fraction=0.4, seed=7)
+    _, ev_b, _ = template_disjoint_split(ds, eval_fraction=0.4, seed=7)
+    assert ev_a["text"] == ev_b["text"]

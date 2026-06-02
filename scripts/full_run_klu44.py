@@ -31,6 +31,7 @@ from klusai.privacy.models.training.token_classification import (
     _bioes_from_spans,
     resolve_device,
     resolve_max_util_profile,
+    template_disjoint_split,
 )
 
 logger = get_logger("full_run_klu44")
@@ -221,11 +222,19 @@ def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep
         raise RuntimeError(f"{base_model} needs a fast tokenizer for span alignment")
 
     raw = _build_dataset(seed)
-    n = raw.num_rows
-    n_eval = max(1, int(n * eval_fraction))
-    eval_rows = raw.select(range(n_eval))
-    train_rows = raw.select(range(n_eval, n))
-    logger.info("split: %d train / %d eval", train_rows.num_rows, eval_rows.num_rows)
+    # KLU-54: template-disjoint held-out eval. The old shuffled-head split re-used the corpus's ~6
+    # templates (per language) in both train and eval, so eval-loss measured memorization of fixed
+    # skeletons (final_eval_loss ~7.2e-10), not generalization. Hold out whole templates instead so
+    # every eval row's structure is absent from train across the multilingual mix.
+    train_rows, eval_rows, split_info = template_disjoint_split(
+        raw, eval_fraction=eval_fraction, seed=seed
+    )
+    train_rows = train_rows.shuffle(seed=seed)
+    eval_rows = eval_rows.shuffle(seed=seed)
+    logger.info(
+        "split: %d train / %d eval | template-disjoint: %s",
+        train_rows.num_rows, eval_rows.num_rows, split_info,
+    )
 
     encode = _encoder(tok, label2id, max_length)
     eval_ds = eval_rows.map(encode, batched=True, remove_columns=eval_rows.column_names)
@@ -299,6 +308,8 @@ def main(base_model, publish_id, output_dir, device, epochs, sweep_epochs, sweep
         "datasets": DATASETS,
         "train_rows": full_train_ds.num_rows,
         "eval_rows": eval_ds.num_rows,
+        "split": "template-disjoint (KLU-54)",
+        "split_info": split_info,
         "epochs": epochs,
         "sweep_epochs": sweep_epochs,
         "sweep_subset": sweep_train.num_rows,
