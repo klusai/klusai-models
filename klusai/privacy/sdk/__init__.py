@@ -17,8 +17,6 @@ from dataclasses import dataclass
 # The taxonomy / BIOES label space and the leaderboard adapter are the single source of truth in
 # europriv_bench — never copy them here.
 from europriv_bench.adapters import KpModelAdapter
-from europriv_bench.crosswalk import kp_entities_to_bioes
-from europriv_bench.spans import whitespace_tokens
 
 __version__ = "0.1.0"
 
@@ -55,53 +53,6 @@ def _adapter(model: str) -> KpModelAdapter:
     return _ADAPTERS[model]
 
 
-def _bioes_to_spans(text: str, tags: list[str]) -> list[tuple[int, int, str]]:
-    """Reconstruct ``(start, end, label)`` char spans from BIOES tags over whitespace tokens.
-
-    This walks the *exact* token grid (``whitespace_tokens``) the leaderboard BIOES sequence is
-    defined on, so a span's char extent is the span the harness scores — start at the first
-    token's char-start, end at the last token's char-end.
-    """
-    toks = whitespace_tokens(text)
-    spans: list[tuple[int, int, str]] = []
-    i = 0
-    n = len(tags)
-    while i < n:
-        tag = tags[i]
-        if tag == "O":
-            i += 1
-            continue
-        kind, _, etype = tag.partition("-")
-        if kind == "S":
-            _, ts, te = toks[i]
-            spans.append((ts, te, etype))
-            i += 1
-            continue
-        if kind == "B":
-            start_tok = i
-            j = i
-            # Consume I-* then the closing E-* of the same type (labels_to_bioes guarantees this
-            # shape; be tolerant of a missing E by stopping at the run of same-type tokens).
-            while j + 1 < n:
-                nk, _, ne = tags[j + 1].partition("-")
-                if nk in {"I", "E"} and ne == etype:
-                    j += 1
-                    if nk == "E":
-                        break
-                else:
-                    break
-            _, ts, _ = toks[start_tok]
-            _, _, te = toks[j]
-            spans.append((ts, te, etype))
-            i = j + 1
-            continue
-        # Stray I-/E- without a B- (malformed): treat as a lone token to stay total.
-        _, ts, te = toks[i]
-        spans.append((ts, te, etype))
-        i += 1
-    return spans
-
-
 def extract_pii(text: str, model: str = DEFAULT_MODEL) -> list[Span]:
     """Detect PII/PHI spans in ``text``, typed in the harmonized KP taxonomy.
 
@@ -114,24 +65,14 @@ def extract_pii(text: str, model: str = DEFAULT_MODEL) -> list[Span]:
     ('PERSON', 'Ion Popescu')
     """
     adapter = _adapter(model)
-    pipe = adapter._pipeline()
-    # Raw pipeline entities (entity_group=KP type, char start/end, score) — identical to what the
-    # adapter consumes. Aggregation is "simple", so we get subword-grouped pieces.
-    raw = pipe(text)
-    kp_ents = [
-        {"start": int(e["start"]), "end": int(e["end"]), "label": e["entity_group"], "score": float(e["score"])}
-        for e in raw
+    # Use the adapter's PUBLIC predict_spans accessor — the same model-load + decoding path the
+    # leaderboard scores, returning char-offset spans + score. (Previously this reached into the
+    # private adapter._pipeline() and re-derived the spans here; predict_spans now encapsulates that
+    # exact reconstruction in europriv_bench, so an adapter-internals refactor can't break us.)
+    return [
+        Span(start=p.start, end=p.end, label=p.label, text=p.text, score=p.score)
+        for p in adapter.predict_spans(text)
     ]
-    # Re-derive the BIOES tag sequence exactly as the leaderboard does, then read spans back off the
-    # same whitespace-token grid the harness scores on.
-    tags = kp_entities_to_bioes(text, kp_ents)
-    spans: list[Span] = []
-    for start, end, label in _bioes_to_spans(text, tags):
-        # Mean confidence over the pipeline pieces overlapping this span.
-        pieces = [e["score"] for e in kp_ents if e["start"] < end and e["end"] > start and e["label"] == label]
-        score = sum(pieces) / len(pieces) if pieces else 0.0
-        spans.append(Span(start=start, end=end, label=label, text=text[start:end], score=score))
-    return spans
 
 
 def deidentify(text: str, method: str = "mask", model: str = DEFAULT_MODEL) -> str:

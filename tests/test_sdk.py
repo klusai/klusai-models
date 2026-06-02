@@ -1,9 +1,12 @@
 """Tests for klusai.privacy.sdk — the adoption-layer SDK (KLU-20).
 
-Two layers:
-  * pure-logic tests for `_bioes_to_spans` + the default-model wiring (no model download); and
+  * the default-model wiring (no model download); and
   * an integration test that the live `extract_pii()` reproduces the EuroPriv-Bench
     `KpModelAdapter` predictions (skipped if the HF model/weights aren't available offline).
+
+`extract_pii` delegates span reconstruction to `KpModelAdapter.predict_spans` (KLU-59), which
+owns + tests the BIOES->char-span logic in europriv_bench — so the SDK no longer carries (or
+unit-tests) its own copy.
 """
 
 from __future__ import annotations
@@ -12,30 +15,12 @@ import os
 
 import pytest
 
-from klusai.privacy.sdk import DEFAULT_MODEL, Span, _bioes_to_spans, extract_pii
+from klusai.privacy.sdk import DEFAULT_MODEL, Span, extract_pii
 
 
 def test_default_model_is_the_shipped_h1_weight():
     # kp-deid-moe does not exist yet (H2 maybe); the default must resolve to a real H1 weight.
     assert DEFAULT_MODEL == "klusai/kp-deid-mdeberta-280m"
-
-
-def test_bioes_to_spans_offsets_index_back_to_surface_text():
-    text = "Ion Popescu lives in Bucharest"
-    # B-/E-PERSON over the first two tokens, S-ADDRESS over the last.
-    tags = ["B-PERSON", "E-PERSON", "O", "O", "S-ADDRESS"]
-    spans = _bioes_to_spans(text, tags)
-    assert spans == [(0, 11, "PERSON"), (21, 30, "ADDRESS")]
-    # The defining invariant: char offsets slice back to the surface text.
-    assert text[0:11] == "Ion Popescu"
-    assert text[21:30] == "Bucharest"
-
-
-def test_bioes_to_spans_single_token_entity():
-    text = "Contact ion@example.com now"
-    tags = ["O", "S-EMAIL", "O"]
-    assert _bioes_to_spans(text, tags) == [(8, 23, "EMAIL")]
-    assert text[8:23] == "ion@example.com"
 
 
 def _model_available() -> bool:
