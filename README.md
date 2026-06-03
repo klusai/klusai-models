@@ -152,3 +152,32 @@ Evaluation always defers to the **europriv-bench** harness (single source of tru
 scoring) so results match the public leaderboard. SOTA is claimed only with head-to-head
 wins vs Piiranha (baseline-only, CC-BY-NC-ND), tabularisai, MAPA, OpenMed, GLiNER-PII,
 and `openai/privacy-filter`.
+
+### `kp-anon` — the Track-C span-replacement anonymizer (KLU-109)
+
+`kp-anon` (`anon-lora` family, `kp-anon-mdeberta-280m`) is a **span-replacement anonymizer**: a
+LoRA mDeBERTa-280m PII detector (the KLU-48 MPS-proven batch-16 fp32 profile) whose detected spans
+are **pseudonymized** — replaced with deterministic, type-consistent *surrogates*
+(`klusai.privacy.models.anon.KpAnonAdapter` / `Pseudonymizer`) — instead of blanket-masked. It is
+scored against the **KLU-104 redaction baseline** (the *same* detector used as a plain `█`-masking
+redactor) on the **privacy-utility (Pareto) frontier**:
+
+- **privacy** = `redaction_leakage.leak_rate` (per-subject re-id leak, read from gold offsets, Wilson
+  CI) — identical for the two at equal detection recall; substitution introduces zero leak by
+  construction (a surrogate never re-discloses a fragment of its source);
+- **utility** = `information_retention` (↑ non-PII tokens preserved) and `1 − structural_disruption.mask_token_ratio`
+  (↑ less mask-glyph fragmentation) — where pseudonymization keeps the document usable and the
+  redaction baseline shreds it.
+
+```bash
+# Train kp-anon on-device (MPS, ≤3 epochs, capped corpus, ~3h wall-clock stop, ≥2 seeds).
+python scripts/train_kp_anon_klu109.py --device mps --epochs 3 --seeds 0 --seeds 1 \
+    --max-samples 18000 --wall-clock-stop 10800
+# Held-out, bootstrap-CI'd, ≥2-seed frontier scorecard (ro + pl real-skeleton).
+python scripts/scorecard_kp_anon_klu109.py --manifest runs/klu109-kp-anon-train-manifest.json
+# Render the committed Pareto-frontier figure (dependency-free SVG).
+python scripts/figure_kp_anon_frontier_klu109.py
+```
+
+`config_status=dev`; **no SOTA / "best" / validated claim** (validation gated on KLU-27). See
+[`docs/klu-109-kp-anon-frontier.md`](docs/klu-109-kp-anon-frontier.md) for the scorecard + figure.
