@@ -66,9 +66,9 @@
           "seed": 0,
           "model_id": "runs/kp-anon-mdeberta-280m-seed0",
           "leak_rate_baseline": 0.0,
-          "leak_rate_kp_anon": 0.02315,
-          "leak_rate_wilson_ub_kp_anon": 0.03371,
-          "leak_unchanged_by_policy": false,
+          "leak_rate_kp_anon": 0.0,
+          "leak_rate_wilson_ub_kp_anon": 0.00341,
+          "leak_unchanged_by_policy": true,
           "subjects_total": 1123.0,
           "info_retention_baseline": 0.9422,
           "info_retention_kp_anon": 0.9422,
@@ -82,17 +82,17 @@
           "mask_ratio_delta_ci95_low": -0.2525,
           "mask_ratio_delta_ci95_high": -0.2486,
           "mask_ratio_gain_ci_excludes_0": true,
-          "bijection_in_doc": 0.9992,
-          "bijection_cross_doc": 0.961,
-          "dominates_baseline": false
+          "bijection_in_doc": 0.9984,
+          "bijection_cross_doc": 0.9553,
+          "dominates_baseline": true
         },
         {
           "seed": 1,
           "model_id": "runs/kp-anon-mdeberta-280m-seed1",
           "leak_rate_baseline": 0.0,
-          "leak_rate_kp_anon": 0.0276,
-          "leak_rate_wilson_ub_kp_anon": 0.03892,
-          "leak_unchanged_by_policy": false,
+          "leak_rate_kp_anon": 0.0,
+          "leak_rate_wilson_ub_kp_anon": 0.00341,
+          "leak_unchanged_by_policy": true,
           "subjects_total": 1123.0,
           "info_retention_baseline": 0.9754,
           "info_retention_kp_anon": 0.9754,
@@ -102,20 +102,20 @@
           "info_retention_gain_ci_excludes_0": false,
           "mask_token_ratio_baseline": 0.2283,
           "mask_token_ratio_kp_anon": 0.0041,
-          "unmasking_utility_delta": 0.2242,
-          "mask_ratio_delta_ci95_low": -0.2259,
+          "unmasking_utility_delta": 0.2241,
+          "mask_ratio_delta_ci95_low": -0.2258,
           "mask_ratio_delta_ci95_high": -0.2224,
           "mask_ratio_gain_ci_excludes_0": true,
-          "bijection_in_doc": 0.9994,
-          "bijection_cross_doc": 0.9568,
-          "dominates_baseline": false
+          "bijection_in_doc": 0.9998,
+          "bijection_cross_doc": 0.9524,
+          "dominates_baseline": true
         }
       ],
-      "unmasking_utility_delta_min": 0.2242,
+      "unmasking_utility_delta_min": 0.2241,
       "unmasking_utility_delta_max": 0.2506,
       "info_retention_delta_min": 0.0,
       "info_retention_delta_max": 0.0,
-      "all_seeds_dominate_baseline": false,
+      "all_seeds_dominate_baseline": true,
       "utility_gain_clears_seed_noise": true
     },
     {
@@ -139,9 +139,9 @@
           "seed": 0,
           "model_id": "runs/kp-anon-mdeberta-280m-seed0",
           "leak_rate_baseline": 0.0,
-          "leak_rate_kp_anon": 0.02737,
-          "leak_rate_wilson_ub_kp_anon": 0.03881,
-          "leak_unchanged_by_policy": false,
+          "leak_rate_kp_anon": 0.0,
+          "leak_rate_wilson_ub_kp_anon": 0.00349,
+          "leak_unchanged_by_policy": true,
           "subjects_total": 1096.0,
           "info_retention_baseline": 0.9584,
           "info_retention_kp_anon": 0.9584,
@@ -155,17 +155,17 @@
           "mask_ratio_delta_ci95_low": -0.2373,
           "mask_ratio_delta_ci95_high": -0.2336,
           "mask_ratio_gain_ci_excludes_0": true,
-          "bijection_in_doc": 0.9996,
-          "bijection_cross_doc": 0.9626,
-          "dominates_baseline": false
+          "bijection_in_doc": 0.9995,
+          "bijection_cross_doc": 0.9549,
+          "dominates_baseline": true
         },
         {
           "seed": 1,
           "model_id": "runs/kp-anon-mdeberta-280m-seed1",
           "leak_rate_baseline": 0.0,
-          "leak_rate_kp_anon": 0.02646,
-          "leak_rate_wilson_ub_kp_anon": 0.03774,
-          "leak_unchanged_by_policy": false,
+          "leak_rate_kp_anon": 0.0,
+          "leak_rate_wilson_ub_kp_anon": 0.00349,
+          "leak_unchanged_by_policy": true,
           "subjects_total": 1096.0,
           "info_retention_baseline": 0.9638,
           "info_retention_kp_anon": 0.9638,
@@ -179,16 +179,16 @@
           "mask_ratio_delta_ci95_low": -0.2274,
           "mask_ratio_delta_ci95_high": -0.2235,
           "mask_ratio_gain_ci_excludes_0": true,
-          "bijection_in_doc": 0.9994,
-          "bijection_cross_doc": 0.9484,
-          "dominates_baseline": false
+          "bijection_in_doc": 0.9996,
+          "bijection_cross_doc": 0.937,
+          "dominates_baseline": true
         }
       ],
       "unmasking_utility_delta_min": 0.2255,
       "unmasking_utility_delta_max": 0.2355,
       "info_retention_delta_min": 0.0,
       "info_retention_delta_max": 0.0,
-      "all_seeds_dominate_baseline": false,
+      "all_seeds_dominate_baseline": true,
       "utility_gain_clears_seed_noise": true
     }
   ],
@@ -197,23 +197,26 @@
       "pl",
       "ro"
     ],
-    "n_languages_kp_anon_dominates_redaction_baseline_all_seeds": 0,
-    "dominates_on": [],
+    "n_languages_kp_anon_dominates_redaction_baseline_all_seeds": 2,
+    "dominates_on": [
+      "ro-realskeleton-v1",
+      "pl-realskeleton-v1"
+    ],
     "per_config": {
       "ro-realskeleton-v1": {
         "status": "scored",
-        "leak_unchanged_by_policy": false,
-        "unmasking_utility_delta_min": 0.2242,
+        "leak_unchanged_by_policy": true,
+        "unmasking_utility_delta_min": 0.2241,
         "unmasking_utility_delta_max": 0.2506,
-        "all_seeds_dominate": false,
+        "all_seeds_dominate": true,
         "utility_gain_clears_seed_noise": true
       },
       "pl-realskeleton-v1": {
         "status": "scored",
-        "leak_unchanged_by_policy": false,
+        "leak_unchanged_by_policy": true,
         "unmasking_utility_delta_min": 0.2255,
         "unmasking_utility_delta_max": 0.2355,
-        "all_seeds_dominate": false,
+        "all_seeds_dominate": true,
         "utility_gain_clears_seed_noise": true
       }
     }
@@ -225,5 +228,5 @@
     "privacy_axis_attributable_to_detection_recall": true,
     "substitution_introduces_zero_leak_by_construction": true
   },
-  "timestamp": "2026-06-03T10:20:43.257662+00:00"
+  "timestamp": "2026-06-03T10:46:59.153353+00:00"
 }
