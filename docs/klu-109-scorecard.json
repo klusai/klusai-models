@@ -1,0 +1,229 @@
+{
+  "issue": "KLU-109",
+  "model": "kp-anon-mdeberta-280m",
+  "model_kind": "span-replacement anonymizer (LoRA mDeBERTa detector + pseudonymization policy)",
+  "schema": 1,
+  "control_role": "redaction baseline (KLU-104): SAME trained detector, blanket-mask anonymize",
+  "seed_models": {
+    "0": "runs/kp-anon-mdeberta-280m-seed0",
+    "1": "runs/kp-anon-mdeberta-280m-seed1"
+  },
+  "bootstrap": {
+    "iters": 2000,
+    "seed": 12345,
+    "ci": "95% percentile, paired by document"
+  },
+  "train_manifest": {
+    "device": "mps",
+    "bounds": {
+      "max_samples_total_balanced": 18000,
+      "epochs": 3,
+      "wall_clock_stop_seconds": 10800.0,
+      "epochs_hard_cap": 3
+    },
+    "seeds_completed": [
+      0,
+      1
+    ],
+    "total_wall_minutes": 15.4,
+    "stopped_early": false,
+    "utilization": {
+      "source": "ioreg IOAccelerator 'Device Utilization %' (no root)",
+      "available": true,
+      "n_samples": 269,
+      "n_busy_samples": 268,
+      "busy_mean_pct": 93.0,
+      "peak_pct": 94,
+      "sustained_gpu_power_w": null,
+      "power_note": "not captured (needs passwordless sudo); run alongside training: sudo powermetrics --samplers gpu_power -i 1000 -n 5"
+    },
+    "max_util_profile": {
+      "effective_batch_size": 16,
+      "num_workers": 0,
+      "bf16": false
+    },
+    "balanced_train_rows": 18000
+  },
+  "frontier_cells": [
+    {
+      "track": "track-c-frontier",
+      "spec": "Anonymization (Track C) — Romanian (real-skeleton v1)",
+      "config": "ro-realskeleton-v1",
+      "languages": [
+        "ro"
+      ],
+      "n": 1500,
+      "control_role": "redaction baseline (KLU-104) = SAME kp-anon detector, blanket-mask policy",
+      "privacy_metric": "redaction_leakage.leak_rate (gold-offset, Wilson CI)",
+      "utility_metrics": [
+        "information_retention (↑)",
+        "1 − structural_disruption.mask_token_ratio (↑)"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-anon-mdeberta-280m-seed0",
+          "leak_rate_baseline": 0.0,
+          "leak_rate_kp_anon": 0.02315,
+          "leak_rate_wilson_ub_kp_anon": 0.03371,
+          "leak_unchanged_by_policy": false,
+          "subjects_total": 1123.0,
+          "info_retention_baseline": 0.9422,
+          "info_retention_kp_anon": 0.9422,
+          "info_retention_delta": 0.0,
+          "info_retention_delta_ci95_low": 0.0,
+          "info_retention_delta_ci95_high": 0.0,
+          "info_retention_gain_ci_excludes_0": false,
+          "mask_token_ratio_baseline": 0.2506,
+          "mask_token_ratio_kp_anon": 0.0,
+          "unmasking_utility_delta": 0.2506,
+          "mask_ratio_delta_ci95_low": -0.2525,
+          "mask_ratio_delta_ci95_high": -0.2486,
+          "mask_ratio_gain_ci_excludes_0": true,
+          "bijection_in_doc": 0.9992,
+          "bijection_cross_doc": 0.961,
+          "dominates_baseline": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-anon-mdeberta-280m-seed1",
+          "leak_rate_baseline": 0.0,
+          "leak_rate_kp_anon": 0.0276,
+          "leak_rate_wilson_ub_kp_anon": 0.03892,
+          "leak_unchanged_by_policy": false,
+          "subjects_total": 1123.0,
+          "info_retention_baseline": 0.9754,
+          "info_retention_kp_anon": 0.9754,
+          "info_retention_delta": 0.0,
+          "info_retention_delta_ci95_low": 0.0,
+          "info_retention_delta_ci95_high": 0.0,
+          "info_retention_gain_ci_excludes_0": false,
+          "mask_token_ratio_baseline": 0.2283,
+          "mask_token_ratio_kp_anon": 0.0041,
+          "unmasking_utility_delta": 0.2242,
+          "mask_ratio_delta_ci95_low": -0.2259,
+          "mask_ratio_delta_ci95_high": -0.2224,
+          "mask_ratio_gain_ci_excludes_0": true,
+          "bijection_in_doc": 0.9994,
+          "bijection_cross_doc": 0.9568,
+          "dominates_baseline": false
+        }
+      ],
+      "unmasking_utility_delta_min": 0.2242,
+      "unmasking_utility_delta_max": 0.2506,
+      "info_retention_delta_min": 0.0,
+      "info_retention_delta_max": 0.0,
+      "all_seeds_dominate_baseline": false,
+      "utility_gain_clears_seed_noise": true
+    },
+    {
+      "track": "track-c-frontier",
+      "spec": "Anonymization (Track C) — Polish (real-skeleton v1)",
+      "config": "pl-realskeleton-v1",
+      "languages": [
+        "pl"
+      ],
+      "n": 1500,
+      "control_role": "redaction baseline (KLU-104) = SAME kp-anon detector, blanket-mask policy",
+      "privacy_metric": "redaction_leakage.leak_rate (gold-offset, Wilson CI)",
+      "utility_metrics": [
+        "information_retention (↑)",
+        "1 − structural_disruption.mask_token_ratio (↑)"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-anon-mdeberta-280m-seed0",
+          "leak_rate_baseline": 0.0,
+          "leak_rate_kp_anon": 0.02737,
+          "leak_rate_wilson_ub_kp_anon": 0.03881,
+          "leak_unchanged_by_policy": false,
+          "subjects_total": 1096.0,
+          "info_retention_baseline": 0.9584,
+          "info_retention_kp_anon": 0.9584,
+          "info_retention_delta": 0.0,
+          "info_retention_delta_ci95_low": 0.0,
+          "info_retention_delta_ci95_high": 0.0,
+          "info_retention_gain_ci_excludes_0": false,
+          "mask_token_ratio_baseline": 0.2355,
+          "mask_token_ratio_kp_anon": 0.0,
+          "unmasking_utility_delta": 0.2355,
+          "mask_ratio_delta_ci95_low": -0.2373,
+          "mask_ratio_delta_ci95_high": -0.2336,
+          "mask_ratio_gain_ci_excludes_0": true,
+          "bijection_in_doc": 0.9996,
+          "bijection_cross_doc": 0.9626,
+          "dominates_baseline": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-anon-mdeberta-280m-seed1",
+          "leak_rate_baseline": 0.0,
+          "leak_rate_kp_anon": 0.02646,
+          "leak_rate_wilson_ub_kp_anon": 0.03774,
+          "leak_unchanged_by_policy": false,
+          "subjects_total": 1096.0,
+          "info_retention_baseline": 0.9638,
+          "info_retention_kp_anon": 0.9638,
+          "info_retention_delta": 0.0,
+          "info_retention_delta_ci95_low": 0.0,
+          "info_retention_delta_ci95_high": 0.0,
+          "info_retention_gain_ci_excludes_0": false,
+          "mask_token_ratio_baseline": 0.2263,
+          "mask_token_ratio_kp_anon": 0.0008,
+          "unmasking_utility_delta": 0.2255,
+          "mask_ratio_delta_ci95_low": -0.2274,
+          "mask_ratio_delta_ci95_high": -0.2235,
+          "mask_ratio_gain_ci_excludes_0": true,
+          "bijection_in_doc": 0.9994,
+          "bijection_cross_doc": 0.9484,
+          "dominates_baseline": false
+        }
+      ],
+      "unmasking_utility_delta_min": 0.2255,
+      "unmasking_utility_delta_max": 0.2355,
+      "info_retention_delta_min": 0.0,
+      "info_retention_delta_max": 0.0,
+      "all_seeds_dominate_baseline": false,
+      "utility_gain_clears_seed_noise": true
+    }
+  ],
+  "headline": {
+    "frontier_languages_scored": [
+      "pl",
+      "ro"
+    ],
+    "n_languages_kp_anon_dominates_redaction_baseline_all_seeds": 0,
+    "dominates_on": [],
+    "per_config": {
+      "ro-realskeleton-v1": {
+        "status": "scored",
+        "leak_unchanged_by_policy": false,
+        "unmasking_utility_delta_min": 0.2242,
+        "unmasking_utility_delta_max": 0.2506,
+        "all_seeds_dominate": false,
+        "utility_gain_clears_seed_noise": true
+      },
+      "pl-realskeleton-v1": {
+        "status": "scored",
+        "leak_unchanged_by_policy": false,
+        "unmasking_utility_delta_min": 0.2255,
+        "unmasking_utility_delta_max": 0.2355,
+        "all_seeds_dominate": false,
+        "utility_gain_clears_seed_noise": true
+      }
+    }
+  },
+  "guards": {
+    "config_status": "dev",
+    "no_sota_or_best_or_validated_claim": true,
+    "validated_gated_on": "KLU-27",
+    "privacy_axis_attributable_to_detection_recall": true,
+    "substitution_introduces_zero_leak_by_construction": true
+  },
+  "timestamp": "2026-06-03T10:20:43.257662+00:00"
+}

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460" font-family="Helvetica,Arial,sans-serif">
+<rect width="720" height="460" fill="white"/>
+<text x="360.0" y="24" text-anchor="middle" font-size="16" font-weight="bold">kp-anon vs redaction baseline — privacy-utility frontier (Track C)</text>
+<text x="360.0" y="42" text-anchor="middle" font-size="11" fill="#555">config_status=dev · held-out real-skeleton · NO SOTA/validated claim (gated KLU-27)</text>
+<line x1="70" y1="56" x2="70" y2="396" stroke="#333"/>
+<line x1="70" y1="396" x2="520" y2="396" stroke="#333"/>
+<line x1="70.0" y1="56" x2="70.0" y2="396" stroke="#eee"/>
+<text x="70.0" y="412" text-anchor="middle" font-size="10" fill="#555">0.00</text>
+<line x1="70" y1="396.0" x2="520" y2="396.0" stroke="#eee"/>
+<text x="62" y="399.0" text-anchor="end" font-size="10" fill="#555">0.00</text>
+<line x1="182.5" y1="56" x2="182.5" y2="396" stroke="#eee"/>
+<text x="182.5" y="412" text-anchor="middle" font-size="10" fill="#555">0.25</text>
+<line x1="70" y1="311.0" x2="520" y2="311.0" stroke="#eee"/>
+<text x="62" y="314.0" text-anchor="end" font-size="10" fill="#555">0.25</text>
+<line x1="295.0" y1="56" x2="295.0" y2="396" stroke="#eee"/>
+<text x="295.0" y="412" text-anchor="middle" font-size="10" fill="#555">0.50</text>
+<line x1="70" y1="226.0" x2="520" y2="226.0" stroke="#eee"/>
+<text x="62" y="229.0" text-anchor="end" font-size="10" fill="#555">0.50</text>
+<line x1="407.5" y1="56" x2="407.5" y2="396" stroke="#eee"/>
+<text x="407.5" y="412" text-anchor="middle" font-size="10" fill="#555">0.75</text>
+<line x1="70" y1="141.0" x2="520" y2="141.0" stroke="#eee"/>
+<text x="62" y="144.0" text-anchor="end" font-size="10" fill="#555">0.75</text>
+<line x1="520.0" y1="56" x2="520.0" y2="396" stroke="#eee"/>
+<text x="520.0" y="412" text-anchor="middle" font-size="10" fill="#555">1.00</text>
+<line x1="70" y1="56.0" x2="520" y2="56.0" stroke="#eee"/>
+<text x="62" y="59.0" text-anchor="end" font-size="10" fill="#555">1.00</text>
+<text x="295.0" y="438" text-anchor="middle" font-size="12">utility = 1 − mask-token ratio  (→ more usable)</text>
+<text x="20" y="226.0" text-anchor="middle" font-size="12" transform="rotate(-90 20 226.0)">re-id leak rate  (↓ safer)</text>
+<text x="516" y="390" text-anchor="end" font-size="10" fill="#2ca02c">↘ better (high utility, low leak)</text>
+<line x1="407.2" y1="396.0" x2="519.1" y2="387.4" stroke="#1f77b4" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
+<rect x="402.2" y="391.0" width="10" height="10" fill="white" stroke="#1f77b4" stroke-width="2"/>
+<circle cx="520.0" cy="388.1" r="4" fill="#1f77b4" opacity="0.55"/>
+<circle cx="518.2" cy="386.6" r="4" fill="#1f77b4" opacity="0.55"/>
+<circle cx="519.1" cy="387.4" r="6" fill="#1f77b4"/>
+<text x="528.1" y="390.4" font-size="11" fill="#1f77b4" font-weight="bold">RO</text>
+<line x1="414.0" y1="396.0" x2="519.8" y2="386.8" stroke="#d62728" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>
+<rect x="409.0" y="391.0" width="10" height="10" fill="white" stroke="#d62728" stroke-width="2"/>
+<circle cx="520.0" cy="386.7" r="4" fill="#d62728" opacity="0.55"/>
+<circle cx="519.6" cy="387.0" r="4" fill="#d62728" opacity="0.55"/>
+<circle cx="519.8" cy="386.8" r="6" fill="#d62728"/>
+<text x="528.8" y="389.8" font-size="11" fill="#d62728" font-weight="bold">PL</text>
+<text x="538" y="62" font-size="11" font-weight="bold">legend</text>
+<rect x="538" y="71" width="10" height="10" fill="white" stroke="#444" stroke-width="2"/>
+<text x="554" y="80" font-size="10">redaction baseline</text>
+<circle cx="543" cy="95" r="5" fill="#444"/>
+<text x="554" y="98" font-size="10">kp-anon</text>
+<circle cx="543" cy="117" r="5" fill="#d62728"/>
+<text x="554" y="120" font-size="10">PL</text>
+<circle cx="543" cy="133" r="5" fill="#1f77b4"/>
+<text x="554" y="136" font-size="10">RO</text>
+<text x="538" y="160" font-size="10" fill="#333">dominates baseline:</text>
+<text x="538" y="174" font-size="10" fill="#333">0/2 langs (all seeds)</text>
+</svg>

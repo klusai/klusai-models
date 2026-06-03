@@ -27,6 +27,17 @@ gliner:
 anon-lora:
   type: anon-lora
   variants:
+    # KLU-109 pre-committed minimum-viable config: a span-replacement anonymizer = a LoRA mDeBERTa
+    # detector (the KLU-48 MPS-proven profile) + a deterministic type-consistent pseudonymization
+    # policy (klusai.privacy.models.anon.KpAnonAdapter). Trained on-device; config_status=dev.
+    - name: kp-anon-mdeberta-280m
+      base_model: microsoft/mdeberta-v3-base
+      params: 280M
+      lora_rank: 16
+      kind: span-replacement
+      note: "detector + pseudonymization; vs the KLU-104 redaction baseline on the privacy-utility frontier"
+    # Heavier generative alternative (NOT trained here — span-replacement is the pre-committed config
+    # because it is unambiguously Mac-feasible and cannot hallucinate a re-identifying value).
     - name: kp-anon-qwen3-1.7b-lora
       base_model: Qwen/Qwen3-1.7B
       lora_rank: 16
