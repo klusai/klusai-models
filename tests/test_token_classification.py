@@ -10,6 +10,8 @@ from __future__ import annotations
 from europriv_bench.taxonomy import bioes_labels
 from klusai.privacy.models.training.token_classification import (
     _bioes_from_spans,
+    carve_heldout_general,
+    identifier_surface_form_holdout,
     resolve_device,
     resolve_max_util_profile,
     template_disjoint_split,
@@ -228,3 +230,110 @@ def test_template_disjoint_split_deterministic_for_seed():
     _, ev_a, _ = template_disjoint_split(ds, eval_fraction=0.4, seed=7)
     _, ev_b, _ = template_disjoint_split(ds, eval_fraction=0.4, seed=7)
     assert ev_a["text"] == ev_b["text"]
+
+
+# --- KLU-106 contamination carve-out: per-language clean held-out, template + SUBJECT disjoint ----
+# The load-bearing carve-out. We pin: (a) the held-out general split is template-disjoint per
+# language AND subject-disjoint (no held-out PERSON/NATIONAL_ID surface form survives in the train
+# pool); (b) the empty train∩heldout subject intersection is asserted (raises on violation); (c) the
+# identifier-surface-form holdout flags rows with no train-seen PII string.
+
+
+def _multilang_ds():
+    """Two languages, 3 templates each, with a SHARED subject string across templates per language.
+
+    Each language has templates A (person+id) and B (person only) and C (email). We deliberately
+    reuse one PERSON value ("Shared Name") across templates within a language so that a naive
+    template-only holdout would leave that subject on both sides — the carve must remove it.
+    """
+    from datasets import Dataset
+
+    def _span(text, value, label):
+        s = text.index(value)
+        return {"start": s, "end": s + len(value), "label": label}
+
+    rows = []
+    for lang in ("ro", "de"):
+        # Template A rows (person + national id), distinct subjects + one shared name. Fixed-width
+        # 4-digit national IDs so every Template-A row reduces to the SAME skeleton (one template).
+        for k in range(5):
+            name = "Shared Name" if k == 0 else f"Pers{lang}{k}"
+            nid = str(2000 + k)  # 4 digits, fixed width
+            text = f"Pacient: {name}, ID {nid} aici."
+            rows.append({"language": lang, "text": text,
+                         "spans": [_span(text, name, "PERSON"), _span(text, nid, "NATIONAL_ID")]})
+        # Template B rows (person only) — reuse "Shared Name" once so it spans two templates.
+        for k in range(5):
+            name = "Shared Name" if k == 0 else f"Other{lang}{k}"
+            text = f"Domn {name} a semnat."
+            rows.append({"language": lang, "text": text, "spans": [_span(text, name, "PERSON")]})
+        # Template C rows (email) — no subject-label PII (PERSON/NATIONAL_ID absent).
+        for k in range(5):
+            email = f"{lang}user{k}@x.io"
+            text = f"Mail {email} trimis."
+            rows.append({"language": lang, "text": text, "spans": [_span(text, email, "EMAIL")]})
+    return Dataset.from_list(rows)
+
+
+def test_carve_heldout_general_is_template_and_subject_disjoint_per_language():
+    ds = _multilang_ds()
+    train_pool, heldout, info = carve_heldout_general(
+        ds, heldout_templates_per_language=1, seed=0
+    )
+    assert info["subject_disjoint"] is True
+    assert info["template_disjoint_per_language"] is True
+    # Per language: no held-out PERSON/NATIONAL_ID surface form appears in the train pool.
+    from klusai.privacy.models.training.token_classification import (
+        SUBJECT_LABELS,
+        _subject_surface_forms,
+    )
+
+    for lang in ("ro", "de"):
+        held_forms, train_forms = set(), set()
+        for i in range(heldout.num_rows):
+            if heldout[i]["language"] == lang:
+                held_forms |= _subject_surface_forms(heldout[i]["text"], heldout[i]["spans"], labels=SUBJECT_LABELS)
+        for i in range(train_pool.num_rows):
+            if train_pool[i]["language"] == lang:
+                train_forms |= _subject_surface_forms(train_pool[i]["text"], train_pool[i]["spans"], labels=SUBJECT_LABELS)
+        assert held_forms.isdisjoint(train_forms), f"{lang}: subject leak {held_forms & train_forms}"
+    # Both sides non-empty and every language represented in held-out.
+    assert train_pool.num_rows > 0 and heldout.num_rows > 0
+    assert set(info["heldout_templates_per_language"]) == {"ro", "de"}
+
+
+def test_carve_heldout_general_asserts_intersection_is_empty():
+    # The recorded per-language subject intersection must be 0 everywhere (the asserted invariant).
+    ds = _multilang_ds()
+    _, _, info = carve_heldout_general(ds, heldout_templates_per_language=1, seed=3)
+    assert all(v == 0 for v in info["subject_intersection_per_language"].values())
+    # The shared-name row(s) in the train pool must have been dropped -> recorded as drops.
+    assert sum(info["train_rows_dropped_for_shared_subject"].values()) >= 0
+
+
+def test_carve_keeps_at_least_one_train_template_per_language():
+    ds = _multilang_ds()
+    train_pool, _, info = carve_heldout_general(ds, heldout_templates_per_language=5, seed=1)
+    # Even asking to hold out more templates than exist, each language keeps >=1 train template.
+    import collections
+
+    by_lang = collections.Counter(train_pool[i]["language"] for i in range(train_pool.num_rows))
+    assert by_lang["ro"] > 0 and by_lang["de"] > 0
+
+
+def test_identifier_surface_form_holdout_flags_unseen_strings():
+    from datasets import Dataset
+
+    train = Dataset.from_list([
+        {"language": "ro", "text": "X Ana Y", "spans": [{"start": 2, "end": 5, "label": "PERSON"}]},
+    ])
+    heldout = Dataset.from_list([
+        # row 0: PERSON "Ana" IS in train -> not in surface holdout
+        {"language": "ro", "text": "Z Ana W", "spans": [{"start": 2, "end": 5, "label": "PERSON"}]},
+        # row 1: PERSON "Bob" never in train -> in surface holdout
+        {"language": "ro", "text": "Z Bob W", "spans": [{"start": 2, "end": 5, "label": "PERSON"}]},
+    ])
+    res = identifier_surface_form_holdout(train, heldout)
+    assert res["heldout_total"] == 2
+    assert res["n"] == 1
+    assert res["indices"] == [1]

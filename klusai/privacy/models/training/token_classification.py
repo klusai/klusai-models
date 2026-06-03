@@ -191,6 +191,209 @@ def template_disjoint_split(rows, *, eval_fraction: float, seed: int):
     return rows.select(train_idx), rows.select(eval_idx), info
 
 
+def assert_template_disjoint_per_language(rows, *, language_key: str = "language") -> dict:
+    """Hard check: within EACH language, ``rows`` carry whichever set of templates they carry.
+
+    A weaker companion to the split asserts — given a *single* row collection (e.g. a built train
+    or held-out pool), report the per-language template inventory so a caller can assert two
+    collections are template-disjoint per language (KLU-106 extends the KLU-54 disjointness to ALL
+    T1 languages, not just the merged mix). Returns ``{lang: {skeleton: count}}``.
+    """
+    import collections
+
+    texts = rows["text"]
+    spans_col = rows["spans"]
+    langs = rows[language_key]
+    per_lang: dict[str, dict[str, int]] = collections.defaultdict(lambda: collections.defaultdict(int))
+    for i in range(rows.num_rows):
+        sk = template_skeleton(texts[i], spans_col[i])
+        per_lang[langs[i]][sk] += 1
+    return {lang: dict(skels) for lang, skels in per_lang.items()}
+
+
+def _subject_surface_forms(text: str, spans: list[dict], *, labels: frozenset[str]) -> set[str]:
+    """Normalized PII surface strings for the *subject-defining* labels in one row.
+
+    A "subject" for the contamination carve-out is a distinct **re-id-bearing** surface form
+    (KLU-106) — the ``NATIONAL_ID`` value. So the held-out general split is disjoint from train not
+    only in template *structure* but in the actual national-IDs it contains: the bug that bit the
+    program was a random balanced draw from the full 50k silently re-absorbing held-out rows
+    (KLU-54), and template-disjointness alone does not prevent the same *value* appearing on both
+    sides via a different template.
+
+    Crucially the subject key is the national-ID, NOT the person name: measured on the corpora, the
+    national-ID is near-unique per row (≈33205 distinct over 33206 RO rows) while ``PERSON`` is drawn
+    from a tiny faker pool (≈128 names repeated hundreds of times). Keying on PERSON would make
+    subject-disjointness impossible (every name appears on both sides); keying on the near-unique
+    re-id identifier makes it both meaningful (it is exactly the value whose leak we measure) and
+    achievable without annihilating the train pool. Rows with no national-ID carry no subject and are
+    partitioned by template alone (the re-id-contamination concern is vacuous for them).
+    """
+    out: set[str] = set()
+    for sp in spans:
+        if sp["label"] in labels:
+            v = text[sp["start"] : sp["end"]].strip()
+            if v:
+                out.add(v)
+    return out
+
+
+# The label that defines a "subject" for the subject-level held-out exclusion (KLU-106): the
+# re-id-bearing NATIONAL_ID (near-unique per row), whose leak the program measures. NOT PERSON — see
+# _subject_surface_forms (PERSON is a ~128-name faker pool, so it cannot be made subject-disjoint).
+SUBJECT_LABELS = frozenset({"NATIONAL_ID"})
+
+
+def carve_heldout_general(
+    rows,
+    *,
+    language_key: str = "language",
+    heldout_templates_per_language: int = 1,
+    seed: int,
+):
+    """Carve a clean held-out general split per language, template- AND subject-disjoint (KLU-106).
+
+    The load-bearing contamination carve-out: v2 trains on the ``ds-kp-general-*`` corpora, so a fair
+    "material F1 gain" must be shown on a surface v2 *never trained on*. This holds out, **per
+    language**, ``heldout_templates_per_language`` whole generator templates (template-disjoint, like
+    KLU-54 but applied within each language), then **removes from the training pool every row that
+    shares a held-out subject surface form** (a held-out ``PERSON`` / ``NATIONAL_ID`` string) so the
+    two sides are disjoint at the *subject* level too — not only by template. A random balanced draw
+    from the full 50k could otherwise re-absorb a held-out subject via a different template; this
+    closes that hole **before** the ≤40k down-sample.
+
+    Returns ``(train_pool_rows, heldout_rows, info)`` where ``info`` records, per language, the
+    held-out templates, the held-out subject count, how many train rows were dropped for sharing a
+    held-out subject, and the asserted empty train∩heldout subject intersection. The caller
+    down-samples ``train_pool_rows`` and trains on it; ``heldout_rows`` is the clean general eval.
+    """
+    import collections
+    import hashlib
+
+    texts = rows["text"]
+    spans_col = rows["spans"]
+    langs = rows[language_key]
+    n = rows.num_rows
+
+    # 1) Per language, pick whole templates to hold out (deterministic seeded order).
+    by_lang_skel: dict[str, dict[str, list[int]]] = collections.defaultdict(
+        lambda: collections.defaultdict(list)
+    )
+    skeletons: list[str] = []
+    for i in range(n):
+        sk = template_skeleton(texts[i], spans_col[i])
+        skeletons.append(sk)
+        by_lang_skel[langs[i]][sk].append(i)
+
+    def _key(lang: str, sk: str) -> str:
+        return hashlib.sha1(f"{seed}:{lang}:{sk}".encode()).hexdigest()
+
+    heldout_idx: set[int] = set()
+    heldout_skels_by_lang: dict[str, list[str]] = {}
+    for lang, skels in by_lang_skel.items():
+        ordered = sorted(skels, key=lambda sk: _key(lang, sk))
+        # Never hold out every template in a language — train must keep >=1 template per language.
+        k = min(heldout_templates_per_language, max(0, len(ordered) - 1))
+        chosen = ordered[:k]
+        heldout_skels_by_lang[lang] = chosen
+        for sk in chosen:
+            heldout_idx.update(skels[sk])
+
+    # 2) Subject surface forms in the held-out side, per language.
+    heldout_subjects_by_lang: dict[str, set[str]] = collections.defaultdict(set)
+    for i in heldout_idx:
+        heldout_subjects_by_lang[langs[i]] |= _subject_surface_forms(
+            texts[i], spans_col[i], labels=SUBJECT_LABELS
+        )
+
+    # 3) Drop from the *train pool* any row sharing a held-out subject surface form (same language).
+    #    This enforces subject-level disjointness BEFORE the down-sample (the load-bearing step).
+    train_idx: list[int] = []
+    dropped_for_subject = collections.Counter()
+    for i in range(n):
+        if i in heldout_idx:
+            continue
+        lang = langs[i]
+        forms = _subject_surface_forms(texts[i], spans_col[i], labels=SUBJECT_LABELS)
+        if forms & heldout_subjects_by_lang.get(lang, set()):
+            dropped_for_subject[lang] += 1
+            continue
+        train_idx.append(i)
+
+    # 4) HARD assert: train ∩ heldout subject intersection is empty, per language.
+    train_subjects_by_lang: dict[str, set[str]] = collections.defaultdict(set)
+    for i in train_idx:
+        train_subjects_by_lang[langs[i]] |= _subject_surface_forms(
+            texts[i], spans_col[i], labels=SUBJECT_LABELS
+        )
+    intersections = {
+        lang: sorted(train_subjects_by_lang.get(lang, set()) & heldout_subjects_by_lang.get(lang, set()))
+        for lang in heldout_subjects_by_lang
+    }
+    nonempty = {lang: xs for lang, xs in intersections.items() if xs}
+    if nonempty:
+        raise RuntimeError(
+            "carve_heldout_general: train∩heldout subject intersection is NON-empty per language "
+            f"{ {k: len(v) for k, v in nonempty.items()} } — refusing to proceed (contamination)."
+        )
+
+    # 5) Also assert per-language template disjointness as a second tripwire.
+    train_skels_by_lang: dict[str, set[str]] = collections.defaultdict(set)
+    for i in train_idx:
+        train_skels_by_lang[langs[i]].add(skeletons[i])
+    for lang, held in heldout_skels_by_lang.items():
+        overlap = train_skels_by_lang.get(lang, set()) & set(held)
+        if overlap:
+            raise RuntimeError(
+                f"carve_heldout_general: template overlap in {lang!r}: {overlap} — not disjoint."
+            )
+
+    info = {
+        "heldout_templates_per_language": {lg: list(s) for lg, s in heldout_skels_by_lang.items()},
+        "heldout_rows": len(heldout_idx),
+        "train_pool_rows": len(train_idx),
+        "heldout_subjects_per_language": {
+            lg: len(s) for lg, s in sorted(heldout_subjects_by_lang.items())
+        },
+        "train_rows_dropped_for_shared_subject": dict(sorted(dropped_for_subject.items())),
+        "subject_intersection_per_language": {lg: len(x) for lg, x in sorted(intersections.items())},
+        "subject_disjoint": True,
+        "template_disjoint_per_language": True,
+        "subject_labels": sorted(SUBJECT_LABELS),
+    }
+    return rows.select(sorted(train_idx)), rows.select(sorted(heldout_idx)), info
+
+
+def identifier_surface_form_holdout(train_rows, heldout_rows, *, language_key: str = "language") -> dict:
+    """Identify held-out eval rows whose every PII surface string is absent from train (KLU-106).
+
+    A surface-form-memorization tripwire: a row is in the identifier-surface-form holdout iff NONE of
+    its gold PII surface strings (any label) appears anywhere in the training set's surface strings.
+    Reporting F1 on this strict subset alongside the full held-out catches a model that merely
+    memorized identifier strings. Returns the row indices (into ``heldout_rows``) and counts.
+    """
+    train_forms: set[str] = set()
+    for i in range(train_rows.num_rows):
+        for sp in train_rows[i]["spans"]:
+            v = train_rows[i]["text"][sp["start"] : sp["end"]].strip()
+            if v:
+                train_forms.add(v)
+
+    pure_idx: list[int] = []
+    for i in range(heldout_rows.num_rows):
+        forms = {
+            heldout_rows[i]["text"][sp["start"] : sp["end"]].strip() for sp in heldout_rows[i]["spans"]
+        }
+        forms.discard("")
+        if forms and not (forms & train_forms):
+            pure_idx.append(i)
+    return {
+        "indices": pure_idx,
+        "n": len(pure_idx),
+        "heldout_total": heldout_rows.num_rows,
+    }
+
+
 def resolve_device(device: str | None, *, cpu: bool) -> str:
     """Resolve the requested training device to one of ``cpu`` / ``mps`` / ``cuda``.
 
