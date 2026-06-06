@@ -324,8 +324,13 @@ def _score_realskeleton(suite, v2_models, control, only_filter):
 @click.option("--out", default="runs/klu106-scorecard.json")
 @click.option("--only-realskeleton", default=None, help="Substring filter on realskeleton spec names.")
 @click.option("--langs", default=None, help="Comma list to restrict general-heldout languages (debug).")
+@click.option("--heldout-general", "heldout_general_override", default=None,
+              help="Override the held-out general dir (RES-19: re-score against the harder set).")
+@click.option("--skip-realskeleton", is_flag=True, default=False,
+              help="Skip the real-skeleton tracks (RES-19: this is a general-eval-quality re-score).")
 @click.option("--threads", type=int, default=4)
-def main(manifest, control, suite, out, only_realskeleton, langs, threads):
+def main(manifest, control, suite, out, only_realskeleton, langs, heldout_general_override,
+         skip_realskeleton, threads):
     try:
         import torch
 
@@ -335,21 +340,25 @@ def main(manifest, control, suite, out, only_realskeleton, langs, threads):
     os.environ.setdefault("EUROPRIV_DEVICE", "cpu")  # scoring on CPU is fine + deterministic-ish
 
     man = json.loads(Path(manifest).read_text())
-    heldout_dir = man["heldout_general_dir"]
+    # RES-19: re-score the EXISTING trained v2 seeds + control against a harder held-out general set,
+    # without touching the KLU-106 carve. ``--heldout-general`` overrides the dir read from the
+    # manifest; the surface-form-holdout indices (computed against the KLU-106 carve) do not apply to
+    # an overridden set, so they are dropped.
+    heldout_dir = heldout_general_override or man["heldout_general_dir"]
+    surface_idx = [] if heldout_general_override else (
+        man.get("identifier_surface_form_holdout", {}).get("indices") or [])
     v2_models = {a["seed"]: a["output_dir"] for a in man.get("seed_artifacts", [])}
     if not v2_models:
         raise click.UsageError("manifest has no completed seed_artifacts to score.")
-    logger.info("scoring v2 seeds %s vs control %s", sorted(v2_models), control)
-
-    # The identifier-surface-form holdout indices (into the saved held-out split) come straight from
-    # the training manifest — they were computed against the actual balanced train set, so this is
-    # exact (no re-approximation here).
-    surface_idx = man.get("identifier_surface_form_holdout", {}).get("indices") or []
+    logger.info("scoring v2 seeds %s vs control %s on held-out %s", sorted(v2_models), control, heldout_dir)
 
     langs_filter = set(langs.split(",")) if langs else None
 
     general_cells = _score_general_heldout(heldout_dir, surface_idx, v2_models, control, langs_filter)
-    realskeleton_cells = _score_realskeleton(suite, v2_models, control, only_realskeleton)
+    realskeleton_cells = (
+        [] if skip_realskeleton
+        else _score_realskeleton(suite, v2_models, control, only_realskeleton)
+    )
 
     # Headline summary: per-language held-out F1 gain (mean over seeds), CI-exclude-0 status.
     headline = {
@@ -373,8 +382,10 @@ def main(manifest, control, suite, out, only_realskeleton, langs, threads):
     ]
 
     scorecard = {
-        "issue": "KLU-106",
+        "issue": "RES-19 (re-score of KLU-106 v2 seeds)" if heldout_general_override else "KLU-106",
         "schema": 3,
+        "heldout_general_dir": heldout_dir,
+        "heldout_general_override": bool(heldout_general_override),
         "control_model": control,
         "control_role": "zero-shot KLU-51 kp-deid scored on the SAME held-out set (NOT the published 0.46-0.52)",
         "v2_seed_models": v2_models,

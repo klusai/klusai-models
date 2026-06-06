@@ -1,0 +1,173 @@
+{
+  "issue": "RES-19",
+  "purpose": "discriminating held-out general eval — 2 independent template families/language",
+  "source": "klusai-datasets hardgeneral (template-disjoint from training, gated)",
+  "languages": [
+    "ro",
+    "en",
+    "pl",
+    "de",
+    "fr",
+    "es",
+    "it",
+    "nl"
+  ],
+  "families_per_language": 2,
+  "n_per_family": 750,
+  "carve_seed": 20260606,
+  "total_rows": 11999,
+  "heldout_general_dir": "runs/res19-heldout-hard-general",
+  "overlap_gate_jaccard_max": 0.1,
+  "overlap_gate_per_language": {
+    "ro": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "en": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "pl": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "de": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "fr": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "es": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "it": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    },
+    "nl": {
+      "family_a_vs_b_jaccard": 0.0,
+      "family_a_vs_train_jaccard": 0.0,
+      "family_b_vs_train_jaccard": 0.0
+    }
+  },
+  "per_language_counts": {
+    "ro": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 761,
+      "dropped_for_shared_train_subject": 0
+    },
+    "en": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 755,
+      "dropped_for_shared_train_subject": 0
+    },
+    "pl": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 738,
+      "dropped_for_shared_train_subject": 0
+    },
+    "de": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 750,
+      "dropped_for_shared_train_subject": 0
+    },
+    "fr": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 756,
+      "dropped_for_shared_train_subject": 0
+    },
+    "es": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 783,
+      "dropped_for_shared_train_subject": 0
+    },
+    "it": {
+      "rows": 1499,
+      "families": {
+        "A": 749,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 731,
+      "dropped_for_shared_train_subject": 1
+    },
+    "nl": {
+      "rows": 1500,
+      "families": {
+        "A": 750,
+        "B": 750
+      },
+      "distinct_national_id_subjects": 786,
+      "dropped_for_shared_train_subject": 0
+    }
+  },
+  "subject_label": "NATIONAL_ID",
+  "train_corpora": [
+    "klusai/ds-kp-general-ro-50k",
+    "klusai/ds-kp-general-en-50k",
+    "klusai/ds-kp-general-pl-50k",
+    "klusai/ds-kp-general-de-50k",
+    "klusai/ds-kp-general-fr-50k",
+    "klusai/ds-kp-general-es-50k",
+    "klusai/ds-kp-general-it-50k",
+    "klusai/ds-kp-general-nl-50k"
+  ],
+  "subject_intersection_with_train_per_language": {
+    "ro": 0,
+    "en": 0,
+    "pl": 0,
+    "de": 0,
+    "fr": 0,
+    "es": 0,
+    "it": 0,
+    "nl": 0
+  },
+  "rows_dropped_for_shared_train_subject_per_language": {
+    "ro": 0,
+    "en": 0,
+    "pl": 0,
+    "de": 0,
+    "fr": 0,
+    "es": 0,
+    "it": 1,
+    "nl": 0
+  },
+  "subject_disjoint_from_train": true,
+  "template_disjoint_from_train": true,
+  "contamination": "clean_held_out",
+  "config_status": "dev",
+  "timestamp": "2026-06-06T08:30:00.635605+00:00"
+}
