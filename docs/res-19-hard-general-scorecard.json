@@ -1,0 +1,554 @@
+{
+  "issue": "RES-19 (re-score of KLU-106 v2 seeds)",
+  "schema": 3,
+  "heldout_general_dir": "runs/res19-heldout-hard-general",
+  "heldout_general_override": true,
+  "control_model": "runs/kp-deid-mdeberta-280m",
+  "control_role": "zero-shot KLU-51 kp-deid scored on the SAME held-out set (NOT the published 0.46-0.52)",
+  "v2_seed_models": {
+    "0": "runs/kp-deid-mdeberta-280m-v2-seed0",
+    "1": "runs/kp-deid-mdeberta-280m-v2-seed1"
+  },
+  "leak_wilson_ub_threshold": 0.01,
+  "bootstrap": {
+    "iters": 2000,
+    "seed": 12345,
+    "ci": "95% percentile, paired by document"
+  },
+  "carve_out_from_manifest": {
+    "heldout_templates_per_language": {
+      "nl": [
+        "Ontslagbrief — <PERSON>, woonachtig te <ADDRESS>, diagnose: <HEALTH_CONDITION>."
+      ],
+      "ro": [
+        "Contract încheiat între <PERSON> (CNP <NATIONAL_ID>) și societatea cu CUI <COMPANY_ID>, cont IBAN <ACCOUNT_ID>, la <DATE>."
+      ],
+      "en": [
+        "Agreement made between <PERSON> (NINO <NATIONAL_ID>) and <ORG_PARTY>, account IBAN <ACCOUNT_ID>, dated <DATE>."
+      ],
+      "fr": [
+        "Cher/Chère <PERSON>, e-mail <EMAIL>, nous confirmons que le paiement sur le compte <ACCOUNT_ID> a été enregistré le <DATE>."
+      ],
+      "pl": [
+        "Pacjent: <PERSON>, PESEL <NATIONAL_ID>, przyjęty w dniu <DATE>. Telefon kontaktowy: <PHONE>."
+      ],
+      "es": [
+        "Paciente: <PERSON>, DNI <NATIONAL_ID>, ingresado en fecha <DATE>. Teléfono de contacto: <PHONE>."
+      ],
+      "it": [
+        "Paziente: <PERSON>, codice fiscale <NATIONAL_ID>, ricoverato in data <DATE>. Telefono di contatto: <PHONE>."
+      ],
+      "de": [
+        "Ich, der Unterzeichnende <PERSON>, Steuer-IdNr <NATIONAL_ID>, wohnhaft in <ADDRESS>, Telefon <PHONE>, erkläre Vorstehendes als wahrheitsgemäß am <DATE>."
+      ]
+    },
+    "heldout_rows": 66799,
+    "train_pool_rows": 333187,
+    "heldout_subjects_per_language": {
+      "de": 8384,
+      "en": 8343,
+      "es": 8309,
+      "fr": 0,
+      "it": 8301,
+      "nl": 0,
+      "pl": 8481,
+      "ro": 8281
+    },
+    "train_rows_dropped_for_shared_subject": {
+      "es": 1,
+      "it": 7,
+      "pl": 5,
+      "ro": 1
+    },
+    "subject_intersection_per_language": {
+      "de": 0,
+      "en": 0,
+      "es": 0,
+      "fr": 0,
+      "it": 0,
+      "nl": 0,
+      "pl": 0,
+      "ro": 0
+    },
+    "subject_disjoint": true,
+    "template_disjoint_per_language": true,
+    "subject_labels": [
+      "NATIONAL_ID"
+    ]
+  },
+  "post_downsample_subject_disjoint": true,
+  "post_downsample_subject_intersection_per_language": {
+    "fr": 0,
+    "nl": 0,
+    "es": 0,
+    "pl": 0,
+    "en": 0,
+    "de": 0,
+    "ro": 0,
+    "it": 0
+  },
+  "identifier_surface_form_holdout": {
+    "n": 0,
+    "heldout_total": 66799
+  },
+  "general_heldout_cells": [
+    {
+      "track": "general-heldout-clean",
+      "language": "de",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.9589,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9935,
+          "delta_vs_control": 0.0346,
+          "delta_ci95_low": 0.0294,
+          "delta_ci95_high": 0.0399,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9999,
+          "delta_vs_control": 0.041,
+          "delta_ci95_low": 0.0364,
+          "delta_ci95_high": 0.0458,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9967,
+      "v2_f1_min": 0.9935,
+      "v2_f1_max": 0.9999,
+      "delta_mean": 0.0378,
+      "delta_min": 0.0346,
+      "delta_max": 0.041,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "en",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.934,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9995,
+          "delta_vs_control": 0.0655,
+          "delta_ci95_low": 0.0605,
+          "delta_ci95_high": 0.0704,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9488,
+          "delta_vs_control": 0.0148,
+          "delta_ci95_low": 0.0059,
+          "delta_ci95_high": 0.0235,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9742,
+      "v2_f1_min": 0.9488,
+      "v2_f1_max": 0.9995,
+      "delta_mean": 0.0402,
+      "delta_min": 0.0148,
+      "delta_max": 0.0655,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "es",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.955,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 1.0,
+          "delta_vs_control": 0.045,
+          "delta_ci95_low": 0.0403,
+          "delta_ci95_high": 0.0494,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9703,
+          "delta_vs_control": 0.0153,
+          "delta_ci95_low": 0.0125,
+          "delta_ci95_high": 0.0181,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9852,
+      "v2_f1_min": 0.9703,
+      "v2_f1_max": 1.0,
+      "delta_mean": 0.0301,
+      "delta_min": 0.0153,
+      "delta_max": 0.045,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "fr",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.954,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9997,
+          "delta_vs_control": 0.0457,
+          "delta_ci95_low": 0.0411,
+          "delta_ci95_high": 0.0505,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9845,
+          "delta_vs_control": 0.0305,
+          "delta_ci95_low": 0.0266,
+          "delta_ci95_high": 0.0345,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9921,
+      "v2_f1_min": 0.9845,
+      "v2_f1_max": 0.9997,
+      "delta_mean": 0.0381,
+      "delta_min": 0.0305,
+      "delta_max": 0.0457,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "it",
+      "n": 1499,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.849,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9597,
+          "delta_vs_control": 0.1107,
+          "delta_ci95_low": 0.1041,
+          "delta_ci95_high": 0.1172,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9877,
+          "delta_vs_control": 0.1387,
+          "delta_ci95_low": 0.1327,
+          "delta_ci95_high": 0.1445,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9737,
+      "v2_f1_min": 0.9597,
+      "v2_f1_max": 0.9877,
+      "delta_mean": 0.1247,
+      "delta_min": 0.1107,
+      "delta_max": 0.1387,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "nl",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.9671,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9895,
+          "delta_vs_control": 0.0224,
+          "delta_ci95_low": 0.0175,
+          "delta_ci95_high": 0.0275,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9999,
+          "delta_vs_control": 0.0329,
+          "delta_ci95_low": 0.0289,
+          "delta_ci95_high": 0.0371,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9947,
+      "v2_f1_min": 0.9895,
+      "v2_f1_max": 0.9999,
+      "delta_mean": 0.0277,
+      "delta_min": 0.0224,
+      "delta_max": 0.0329,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "pl",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.8839,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 0.9914,
+          "delta_vs_control": 0.1075,
+          "delta_ci95_low": 0.1016,
+          "delta_ci95_high": 0.1132,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9883,
+          "delta_vs_control": 0.1044,
+          "delta_ci95_low": 0.0987,
+          "delta_ci95_high": 0.11,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9898,
+      "v2_f1_min": 0.9883,
+      "v2_f1_max": 0.9914,
+      "delta_mean": 0.106,
+      "delta_min": 0.1044,
+      "delta_max": 0.1075,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    },
+    {
+      "track": "general-heldout-clean",
+      "language": "ro",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "COMPANY_ID",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "contamination_basis": "KLU-106 per-language held-out general (template- AND subject-disjoint)",
+      "config_status": "dev",
+      "control_model": "runs/kp-deid-mdeberta-280m",
+      "control_f1": 0.9373,
+      "v2_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed0",
+          "f1": 1.0,
+          "delta_vs_control": 0.0627,
+          "delta_ci95_low": 0.0575,
+          "delta_ci95_high": 0.0678,
+          "ci_excludes_zero": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-mdeberta-280m-v2-seed1",
+          "f1": 0.9688,
+          "delta_vs_control": 0.0315,
+          "delta_ci95_low": 0.0273,
+          "delta_ci95_high": 0.0358,
+          "ci_excludes_zero": true
+        }
+      ],
+      "v2_f1_mean": 0.9844,
+      "v2_f1_min": 0.9688,
+      "v2_f1_max": 1.0,
+      "delta_mean": 0.0471,
+      "delta_min": 0.0315,
+      "delta_max": 0.0627,
+      "headline_gain_all_seeds_ci_exclude_0": true,
+      "identifier_surface_form_holdout": null
+    }
+  ],
+  "real_skeleton_cells": [],
+  "headline_f1_delta_per_language": {
+    "de": {
+      "control_f1": 0.9589,
+      "v2_f1_mean": 0.9967,
+      "delta_mean": 0.0378,
+      "delta_min": 0.0346,
+      "delta_max": 0.041,
+      "all_seeds_ci_exclude_0": true
+    },
+    "en": {
+      "control_f1": 0.934,
+      "v2_f1_mean": 0.9742,
+      "delta_mean": 0.0402,
+      "delta_min": 0.0148,
+      "delta_max": 0.0655,
+      "all_seeds_ci_exclude_0": true
+    },
+    "es": {
+      "control_f1": 0.955,
+      "v2_f1_mean": 0.9852,
+      "delta_mean": 0.0301,
+      "delta_min": 0.0153,
+      "delta_max": 0.045,
+      "all_seeds_ci_exclude_0": true
+    },
+    "fr": {
+      "control_f1": 0.954,
+      "v2_f1_mean": 0.9921,
+      "delta_mean": 0.0381,
+      "delta_min": 0.0305,
+      "delta_max": 0.0457,
+      "all_seeds_ci_exclude_0": true
+    },
+    "it": {
+      "control_f1": 0.849,
+      "v2_f1_mean": 0.9737,
+      "delta_mean": 0.1247,
+      "delta_min": 0.1107,
+      "delta_max": 0.1387,
+      "all_seeds_ci_exclude_0": true
+    },
+    "nl": {
+      "control_f1": 0.9671,
+      "v2_f1_mean": 0.9947,
+      "delta_mean": 0.0277,
+      "delta_min": 0.0224,
+      "delta_max": 0.0329,
+      "all_seeds_ci_exclude_0": true
+    },
+    "pl": {
+      "control_f1": 0.8839,
+      "v2_f1_mean": 0.9898,
+      "delta_mean": 0.106,
+      "delta_min": 0.1044,
+      "delta_max": 0.1075,
+      "all_seeds_ci_exclude_0": true
+    },
+    "ro": {
+      "control_f1": 0.9373,
+      "v2_f1_mean": 0.9844,
+      "delta_mean": 0.0471,
+      "delta_min": 0.0315,
+      "delta_max": 0.0627,
+      "all_seeds_ci_exclude_0": true
+    }
+  },
+  "reid_leak_summary": [],
+  "guards": {
+    "model_card_status": "dev",
+    "no_sota_or_best_protector_or_validated_claim": true,
+    "validated_gated_on": "KLU-27"
+  },
+  "timestamp": "2026-06-06T08:48:48.264977+00:00"
+}
