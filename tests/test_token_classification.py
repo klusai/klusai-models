@@ -12,6 +12,7 @@ from klusai.privacy.models.training.token_classification import (
     _bioes_from_spans,
     carve_heldout_general,
     identifier_surface_form_holdout,
+    lora_target_modules,
     resolve_device,
     resolve_max_util_profile,
     template_disjoint_split,
@@ -68,6 +69,30 @@ def test_all_emitted_labels_in_bioes_space():
     valid = set(_LABELS) | {"IGN"}
     assert all(t in valid for t in out)
     assert out == ["B-PERSON", "E-PERSON", "S-NATIONAL_ID"]
+
+
+# --- RES-97: architecture-aware LoRA target modules -------------------------------------------
+# mDeBERTa names attention projections *_proj; XLM-R/RoBERTa/BERT use the bare names. Picking the
+# wrong set makes PEFT match ZERO modules and train an empty adapter — so this is correctness-
+# critical for adding the XLM-R-560m family member.
+
+
+def test_lora_targets_mdeberta_uses_proj_names():
+    assert lora_target_modules("microsoft/mdeberta-v3-base") == ["query_proj", "key_proj", "value_proj"]
+
+
+def test_lora_targets_xlmr_uses_bare_names():
+    assert lora_target_modules("FacebookAI/xlm-roberta-large") == ["query", "key", "value"]
+
+
+def test_lora_targets_roberta_and_bert_use_bare_names():
+    assert lora_target_modules("roberta-base") == ["query", "key", "value"]
+    assert lora_target_modules("bert-base-multilingual-cased") == ["query", "key", "value"]
+
+
+def test_lora_targets_unknown_falls_back_to_bare_names():
+    # Unknown encoder -> RoBERTa-style default (the common case), never an empty/crashing config.
+    assert lora_target_modules("some-org/mystery-encoder") == ["query", "key", "value"]
 
 
 # --- KLU-45: device selection (cpu/mps/cuda) ---------------------------------------------------
