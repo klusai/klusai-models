@@ -372,18 +372,22 @@ def identifier_surface_form_holdout(train_rows, heldout_rows, *, language_key: s
     Reporting F1 on this strict subset alongside the full held-out catches a model that merely
     memorized identifier strings. Returns the row indices (into ``heldout_rows``) and counts.
     """
+    # Vectorized column reads (one Arrow materialization per column), then iterate Python lists —
+    # NOT per-row ``rows[i]["col"]`` __getitem__s into the Arrow table (the data-prep hang, RES-97).
+    train_texts = train_rows["text"]
+    train_spans = train_rows["spans"]
     train_forms: set[str] = set()
-    for i in range(train_rows.num_rows):
-        for sp in train_rows[i]["spans"]:
-            v = train_rows[i]["text"][sp["start"] : sp["end"]].strip()
+    for text, spans in zip(train_texts, train_spans):
+        for sp in spans:
+            v = text[sp["start"] : sp["end"]].strip()
             if v:
                 train_forms.add(v)
 
+    held_texts = heldout_rows["text"]
+    held_spans = heldout_rows["spans"]
     pure_idx: list[int] = []
-    for i in range(heldout_rows.num_rows):
-        forms = {
-            heldout_rows[i]["text"][sp["start"] : sp["end"]].strip() for sp in heldout_rows[i]["spans"]
-        }
+    for i, (text, spans) in enumerate(zip(held_texts, held_spans)):
+        forms = {text[sp["start"] : sp["end"]].strip() for sp in spans}
         forms.discard("")
         if forms and not (forms & train_forms):
             pure_idx.append(i)
@@ -392,6 +396,31 @@ def identifier_surface_form_holdout(train_rows, heldout_rows, *, language_key: s
         "n": len(pure_idx),
         "heldout_total": heldout_rows.num_rows,
     }
+
+
+def lora_target_modules(base_model: str) -> list[str]:
+    """Architecture-aware LoRA attention-projection module names for an encoder base.
+
+    KLU-11 fixed the target modules to mDeBERTa's disentangled-attention names
+    (``query_proj``/``key_proj``/``value_proj``). Those names are mDeBERTa-specific: XLM-R / RoBERTa
+    (``xlm-roberta``, ``roberta``, ``bert``) call the self-attention projections ``query``/``key``/
+    ``value`` (see ``BertSelfAttention``). RES-97 adds the ``FacebookAI/xlm-roberta-large`` (560M)
+    member of the ``xlmr-ner`` family, so the LoRA target must follow the architecture or PEFT
+    silently matches **zero** modules and trains an empty adapter. We pick by model_type/name:
+    mDeBERTa -> ``*_proj``; XLM-R/RoBERTa/BERT -> the bare names. Unknown encoders fall back to the
+    bare RoBERTa-style names (the common case) with a warning.
+    """
+    name = base_model.lower()
+    if "deberta" in name:
+        return ["query_proj", "key_proj", "value_proj"]
+    if any(k in name for k in ("xlm-roberta", "xlmr", "roberta", "bert")):
+        return ["query", "key", "value"]
+    logger.warning(
+        "lora_target_modules: unknown encoder %r; defaulting to RoBERTa-style query/key/value. "
+        "Verify the adapter trained (print_trainable_parameters > 0).",
+        base_model,
+    )
+    return ["query", "key", "value"]
 
 
 def resolve_device(device: str | None, *, cpu: bool) -> str:
@@ -776,7 +805,9 @@ def train_token_classification(
         r=lora_rank,
         lora_alpha=lora_rank * 2,
         lora_dropout=0.1,
-        target_modules=["query_proj", "key_proj", "value_proj"],
+        # KLU-11 fixed this to mDeBERTa's *_proj names; RES-97 makes it architecture-aware so the
+        # XLM-R-large member of this family doesn't silently train an empty adapter.
+        target_modules=lora_target_modules(base_model),
     )
     model = get_peft_model(model, peft_cfg)
     model.print_trainable_parameters()
