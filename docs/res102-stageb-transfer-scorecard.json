@@ -1,0 +1,118 @@
+{
+  "issue": "RES-102",
+  "schema": 1,
+  "question": "Does training kp-deid-mdeberta-280m on structurally-diverse stage-B synthetic EN data transfer better to REAL legal gold (TAB ECHR) than template-splice stage-A data, at matched size + matched PII (only document STRUCTURE differs)?",
+  "eval": {
+    "name": "TAB ECHR legal English (REAL peer-reviewed gold)",
+    "config": "tab-echr-legal-en-v1",
+    "n": 127,
+    "eval_labels": [
+      "ADDRESS",
+      "CASE_NUMBER",
+      "DATE",
+      "ORG_PARTY",
+      "PERSON"
+    ],
+    "path": "europriv-bench/evaluations/pii-detection-tab-echr-legal-en.yaml (RES-89)",
+    "scoring": "entity_f1 via scorecard_klu106 (_predict/_mask/_entity_f1_on_rows) — EXACT RES-97 path; apples-to-apples with the mdeberta-280m TAB baseline."
+  },
+  "matched_pair": {
+    "base_model": "microsoft/mdeberta-v3-base",
+    "n_train_rows_per_arm": {
+      "stagea": 2000,
+      "stageb": 2000
+    },
+    "hyperparams": {
+      "epochs": 3,
+      "lr": 0.0003,
+      "lora_rank": 16,
+      "batch_size": 16,
+      "max_length": 256,
+      "seed": 0
+    },
+    "identical_hyperparams_and_seed_across_arms": true,
+    "only_difference": "document body STRUCTURE (template-splice vs LLM-narrated); PII and size matched"
+  },
+  "results": {
+    "stagea_tab_entity_f1": 0.0261,
+    "stageb_tab_entity_f1": 0.1006,
+    "delta_stageb_minus_stagea": 0.0745,
+    "noise_floor": 0.01,
+    "effect": "positive_directional",
+    "stagea_tab_full": {
+      "config": "tab-echr-legal-en-v1",
+      "n": 127,
+      "eval_labels": [
+        "ADDRESS",
+        "CASE_NUMBER",
+        "DATE",
+        "ORG_PARTY",
+        "PERSON"
+      ],
+      "entity_f1": 0.0261,
+      "entity_f2": 0.0306,
+      "precision": 0.0209,
+      "recall": 0.0346
+    },
+    "stageb_tab_full": {
+      "config": "tab-echr-legal-en-v1",
+      "n": 127,
+      "eval_labels": [
+        "ADDRESS",
+        "CASE_NUMBER",
+        "DATE",
+        "ORG_PARTY",
+        "PERSON"
+      ],
+      "entity_f1": 0.1006,
+      "entity_f2": 0.0976,
+      "precision": 0.1061,
+      "recall": 0.0956
+    }
+  },
+  "context_prior": {
+    "res97_mdeberta_280m_full_corpus_tab_f1": 0.0489,
+    "note": "RES-97: mdeberta-280m trained on the full 8-lang synthetic corpus collapsed on TAB (0.0489). Context only; not part of this matched pair."
+  },
+  "dataset_integrity": {
+    "stagea": {
+      "n": 2000,
+      "invalid_nino": 0,
+      "invalid_iban": 0,
+      "all_rows_byte_equal_and_bioes_valid": true,
+      "matched_pair_pii": {
+        "docs_compared": 2000,
+        "docs_all_pii_values_in_stageb_pair": 2000
+      }
+    },
+    "stageb": {
+      "n": 2000,
+      "invalid_nino": 0,
+      "invalid_iban": 0,
+      "all_rows_byte_equal_and_bioes_valid": true,
+      "matched_pair_pii": null
+    }
+  },
+  "reading": "POSITIVE (directional). Stage-B transferred better to REAL legal gold: TAB entity-F1 0.1006 vs stage-A 0.0261 (delta +0.0745). The arms share identical PII and size; only document STRUCTURE differs, so the gap is attributable to structural diversity. Single seed per arm — directional, not a CI-backed claim. Absolute levels are low (2000-doc models); the delta is the result.",
+  "guards": {
+    "config_status": "dev (synthetic training; TAB is real external gold)",
+    "single_seed_per_arm": true,
+    "no_citable_or_sota_claim": true,
+    "negative_or_null_reported_truthfully": true
+  },
+  "train_artifacts": {
+    "stagea": {
+      "checkpoint_dir": "runs/res102-stagea-seed0",
+      "train_seconds": 30.3,
+      "device": "mps",
+      "data": "/Users/mihai/codespace/klusai-datasets/artifacts/europriv/en_stagea_matched_v1.jsonl"
+    },
+    "stageb": {
+      "checkpoint_dir": "runs/res102-stageb-seed0",
+      "train_seconds": 68.1,
+      "device": "mps",
+      "data": "/Users/mihai/codespace/klusai-datasets/artifacts/europriv/en_stageb_v1.jsonl"
+    }
+  },
+  "timestamp": "2026-06-07T21:43:03.161190+00:00"
+}
