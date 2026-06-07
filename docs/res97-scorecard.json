@@ -1,0 +1,803 @@
+{
+  "issue": "RES-97",
+  "schema": 3,
+  "question": "Does kp-deid-xlmr-560m beat kp-deid-mdeberta-280m and/or close the F1 gap to GLiNER, on the discriminating evals (NOT the saturating general split)?",
+  "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+  "comparand_role": "kp-deid-mdeberta-280m (the 280M to beat), scored on the SAME held-out rows",
+  "xlmr_560m_seed_models": {
+    "0": "runs/kp-deid-xlmr-560m-seed0",
+    "1": "runs/kp-deid-xlmr-560m-seed1"
+  },
+  "training_manifest": "runs/res97-train-manifest.json",
+  "base_model": "FacebookAI/xlm-roberta-large",
+  "device": "mps",
+  "total_wall_minutes": 45.9,
+  "seed_artifacts": [
+    {
+      "seed": 0,
+      "output_dir": "runs/kp-deid-xlmr-560m-seed0",
+      "intrain_eval_loss": 0.00010244103759760037,
+      "train_seconds": 1225.0,
+      "effective_batch_size": 16,
+      "num_workers": 0,
+      "bf16": false,
+      "train_samples_per_second": 93.8,
+      "peak_mps_mem_gb": 14.4
+    },
+    {
+      "seed": 1,
+      "output_dir": "runs/kp-deid-xlmr-560m-seed1",
+      "intrain_eval_loss": 1.4583031315851258e-06,
+      "train_seconds": 1253.8,
+      "effective_batch_size": 16,
+      "num_workers": 0,
+      "bf16": false,
+      "train_samples_per_second": 91.6,
+      "peak_mps_mem_gb": 14.6
+    }
+  ],
+  "leak_wilson_ub_threshold": 0.01,
+  "bootstrap": {
+    "iters": 2000,
+    "seed": 12345,
+    "ci": "95% percentile, paired by document"
+  },
+  "hard_general_cells": [
+    {
+      "track": "hard-general:de",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9935,
+      "comparand_f2": 0.9935,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.9421,
+          "f2": 0.9516,
+          "delta_f1_vs_comparand": -0.0513,
+          "delta_ci95_low": -0.0562,
+          "delta_ci95_high": -0.0466,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.9019,
+          "f2": 0.9302,
+          "delta_f1_vs_comparand": -0.0916,
+          "delta_ci95_low": -0.0976,
+          "delta_ci95_high": -0.0857,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.922,
+      "xlmr_560m_f1_min": 0.9019,
+      "xlmr_560m_f1_max": 0.9421,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "de",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:en",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9995,
+      "comparand_f2": 0.9995,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.9071,
+          "f2": 0.9404,
+          "delta_f1_vs_comparand": -0.0924,
+          "delta_ci95_low": -0.0973,
+          "delta_ci95_high": -0.0878,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.8533,
+          "f2": 0.8898,
+          "delta_f1_vs_comparand": -0.1462,
+          "delta_ci95_low": -0.1532,
+          "delta_ci95_high": -0.1395,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.8802,
+      "xlmr_560m_f1_min": 0.8533,
+      "xlmr_560m_f1_max": 0.9071,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "en",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:es",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 1.0,
+      "comparand_f2": 1.0,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.8888,
+          "f2": 0.9029,
+          "delta_f1_vs_comparand": -0.1112,
+          "delta_ci95_low": -0.119,
+          "delta_ci95_high": -0.1036,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.8535,
+          "f2": 0.8733,
+          "delta_f1_vs_comparand": -0.1465,
+          "delta_ci95_low": -0.1546,
+          "delta_ci95_high": -0.1388,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.8712,
+      "xlmr_560m_f1_min": 0.8535,
+      "xlmr_560m_f1_max": 0.8888,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "es",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:fr",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9997,
+      "comparand_f2": 0.9997,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.9419,
+          "f2": 0.9435,
+          "delta_f1_vs_comparand": -0.0578,
+          "delta_ci95_low": -0.0621,
+          "delta_ci95_high": -0.0537,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.884,
+          "f2": 0.8976,
+          "delta_f1_vs_comparand": -0.1157,
+          "delta_ci95_low": -0.1224,
+          "delta_ci95_high": -0.1091,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.913,
+      "xlmr_560m_f1_min": 0.884,
+      "xlmr_560m_f1_max": 0.9419,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "fr",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:it",
+      "n": 1499,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9597,
+      "comparand_f2": 0.9597,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.9178,
+          "f2": 0.9395,
+          "delta_f1_vs_comparand": -0.0419,
+          "delta_ci95_low": -0.0499,
+          "delta_ci95_high": -0.0341,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.8356,
+          "f2": 0.8753,
+          "delta_f1_vs_comparand": -0.1241,
+          "delta_ci95_low": -0.1335,
+          "delta_ci95_high": -0.1141,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.8767,
+      "xlmr_560m_f1_min": 0.8356,
+      "xlmr_560m_f1_max": 0.9178,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "it",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:nl",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9895,
+      "comparand_f2": 0.9889,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.8779,
+          "f2": 0.895,
+          "delta_f1_vs_comparand": -0.1116,
+          "delta_ci95_low": -0.1191,
+          "delta_ci95_high": -0.1045,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.8859,
+          "f2": 0.9088,
+          "delta_f1_vs_comparand": -0.1035,
+          "delta_ci95_low": -0.1105,
+          "delta_ci95_high": -0.0969,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.8819,
+      "xlmr_560m_f1_min": 0.8779,
+      "xlmr_560m_f1_max": 0.8859,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "nl",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:pl",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "ORG_PARTY",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.9914,
+      "comparand_f2": 0.9914,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.9272,
+          "f2": 0.9401,
+          "delta_f1_vs_comparand": -0.0643,
+          "delta_ci95_low": -0.0696,
+          "delta_ci95_high": -0.0591,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.9086,
+          "f2": 0.9338,
+          "delta_f1_vs_comparand": -0.0828,
+          "delta_ci95_low": -0.0895,
+          "delta_ci95_high": -0.0765,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.9179,
+      "xlmr_560m_f1_min": 0.9086,
+      "xlmr_560m_f1_max": 0.9272,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "pl",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    },
+    {
+      "track": "hard-general:ro",
+      "n": 1500,
+      "eval_labels": [
+        "ACCOUNT_ID",
+        "ADDRESS",
+        "COMPANY_ID",
+        "DATE",
+        "EMAIL",
+        "NATIONAL_ID",
+        "PERSON",
+        "PHONE"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 1.0,
+      "comparand_f2": 1.0,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.8861,
+          "f2": 0.9051,
+          "delta_f1_vs_comparand": -0.1139,
+          "delta_ci95_low": -0.1201,
+          "delta_ci95_high": -0.1075,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.8148,
+          "f2": 0.8363,
+          "delta_f1_vs_comparand": -0.1852,
+          "delta_ci95_low": -0.1929,
+          "delta_ci95_high": -0.1774,
+          "ci_excludes_zero": true,
+          "beats_comparand": false
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.8504,
+      "xlmr_560m_f1_min": 0.8148,
+      "xlmr_560m_f1_max": 0.8861,
+      "all_seeds_beat_comparand_ci": false,
+      "baselines": [],
+      "language": "ro",
+      "contamination_basis": "RES-19 hard-general: template- AND subject-disjoint from training"
+    }
+  ],
+  "ai4privacy_openpii_cells": [
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-cs-v1",
+      "spec": "PII Detection — Czech (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-cs-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-de-v1",
+      "spec": "PII Detection — German (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-de-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-el-v1",
+      "spec": "PII Detection — Greek (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-el-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-fi-v1",
+      "spec": "PII Detection — Finnish (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-fi-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-fr-v1",
+      "spec": "PII Detection — French (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-fr-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-hu-v1",
+      "spec": "PII Detection — Hungarian (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-hu-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-nl-v1",
+      "spec": "PII Detection — Dutch (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-nl-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-pl-v1",
+      "spec": "PII Detection — Polish (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-pl-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-ro-v1",
+      "spec": "PII Detection — Romanian (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-ro-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "ai4privacy-openpii:ai4privacy-openpii-sv-v1",
+      "spec": "PII Detection — Swedish (Ai4Privacy open core, external synthetic)",
+      "config": "ai4privacy-openpii-sv-v1",
+      "status": "unavailable_on_hub_skipped"
+    }
+  ],
+  "tab_cells": [
+    {
+      "track": "tab:tab-echr-legal-en-v1",
+      "n": 127,
+      "eval_labels": [
+        "ADDRESS",
+        "CASE_NUMBER",
+        "DATE",
+        "ORG_PARTY",
+        "PERSON"
+      ],
+      "contamination": "clean_held_out",
+      "config_status": "real-external-gold",
+      "comparand_model": "runs/kp-deid-mdeberta-280m-v2-seed0",
+      "comparand_f1": 0.0489,
+      "comparand_f2": 0.0555,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.2439,
+          "f2": 0.2278,
+          "delta_f1_vs_comparand": 0.195,
+          "delta_ci95_low": 0.1781,
+          "delta_ci95_high": 0.2133,
+          "ci_excludes_zero": true,
+          "beats_comparand": true
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.3679,
+          "f2": 0.3395,
+          "delta_f1_vs_comparand": 0.3189,
+          "delta_ci95_low": 0.296,
+          "delta_ci95_high": 0.3445,
+          "ci_excludes_zero": true,
+          "beats_comparand": true
+        }
+      ],
+      "xlmr_560m_f1_mean": 0.3059,
+      "xlmr_560m_f1_min": 0.2439,
+      "xlmr_560m_f1_max": 0.3679,
+      "all_seeds_beat_comparand_ci": true,
+      "baselines": [],
+      "spec": "PII Detection — TAB ECHR legal English (REAL gold)",
+      "config": "tab-echr-legal-en-v1",
+      "languages": [
+        "en"
+      ]
+    }
+  ],
+  "real_skeleton_cells": [
+    {
+      "track": "real-skeleton",
+      "spec": "PII Detection + Codice Fiscale Leakage — Italian (real-skeleton v1)",
+      "config": "it-realskeleton-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "real-skeleton",
+      "spec": "PII Detection + CNP Leakage — Legal domain (real-skeleton v1)",
+      "config": "legal-realskeleton-v1",
+      "status": "unavailable_on_hub_skipped"
+    },
+    {
+      "track": "real-skeleton",
+      "spec": "PII Detection + PESEL Leakage — Polish (real-skeleton v1)",
+      "config": "pl-realskeleton-v1",
+      "languages": [
+        "pl"
+      ],
+      "leak_metric": "national_id_leakage",
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "n": 1500,
+      "comparand_f1": 0.7812,
+      "comparand_leak_rate": 0.0,
+      "comparand_leak_wilson_ub": 0.00349,
+      "leak_wilson_ub_threshold": 0.01,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.7369,
+          "f1_gain_vs_comparand": -0.0444,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00349,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1096.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.5767,
+          "f1_gain_vs_comparand": -0.2045,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00349,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1096.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        }
+      ],
+      "any_dissociation_break": false
+    },
+    {
+      "track": "real-skeleton",
+      "spec": "PII Detection + CNP Leakage — Romanian (real-skeleton v1)",
+      "config": "ro-realskeleton-v1",
+      "languages": [
+        "ro"
+      ],
+      "leak_metric": "national_id_leakage",
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "n": 1500,
+      "comparand_f1": 0.7022,
+      "comparand_leak_rate": 0.0,
+      "comparand_leak_wilson_ub": 0.00341,
+      "leak_wilson_ub_threshold": 0.01,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.6721,
+          "f1_gain_vs_comparand": -0.0302,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00341,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1123.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.4961,
+          "f1_gain_vs_comparand": -0.2061,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00341,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1123.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        }
+      ],
+      "any_dissociation_break": false
+    },
+    {
+      "track": "real-skeleton",
+      "spec": "QI Distinctiveness (name-in-context leak) — Romanian (real-skeleton v1)",
+      "config": "ro-realskeleton-v1",
+      "languages": [
+        "ro"
+      ],
+      "leak_metric": "national_id_leakage",
+      "contamination": "clean_held_out",
+      "config_status": "dev",
+      "n": 1500,
+      "comparand_f1": 0.7022,
+      "comparand_leak_rate": 0.0,
+      "comparand_leak_wilson_ub": 0.00341,
+      "leak_wilson_ub_threshold": 0.01,
+      "xlmr_560m_seeds": [
+        {
+          "seed": 0,
+          "model_id": "runs/kp-deid-xlmr-560m-seed0",
+          "f1": 0.6721,
+          "f1_gain_vs_comparand": -0.0302,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00341,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1123.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        },
+        {
+          "seed": 1,
+          "model_id": "runs/kp-deid-xlmr-560m-seed1",
+          "f1": 0.4961,
+          "f1_gain_vs_comparand": -0.2061,
+          "leak_rate": 0.0,
+          "leak_rate_wilson_ub": 0.00341,
+          "leak_rate_delta_vs_comparand": 0.0,
+          "subjects_total": 1123.0,
+          "leak_ub_under_threshold": true,
+          "dissociation_break": false
+        }
+      ],
+      "any_dissociation_break": false
+    }
+  ],
+  "headline_per_track": [
+    {
+      "track": "hard-general:de",
+      "comparand_f1": 0.9935,
+      "xlmr_f1_mean": 0.922,
+      "xlmr_f1_min": 0.9019,
+      "xlmr_f1_max": 0.9421,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:en",
+      "comparand_f1": 0.9995,
+      "xlmr_f1_mean": 0.8802,
+      "xlmr_f1_min": 0.8533,
+      "xlmr_f1_max": 0.9071,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:es",
+      "comparand_f1": 1.0,
+      "xlmr_f1_mean": 0.8712,
+      "xlmr_f1_min": 0.8535,
+      "xlmr_f1_max": 0.8888,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:fr",
+      "comparand_f1": 0.9997,
+      "xlmr_f1_mean": 0.913,
+      "xlmr_f1_min": 0.884,
+      "xlmr_f1_max": 0.9419,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:it",
+      "comparand_f1": 0.9597,
+      "xlmr_f1_mean": 0.8767,
+      "xlmr_f1_min": 0.8356,
+      "xlmr_f1_max": 0.9178,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:nl",
+      "comparand_f1": 0.9895,
+      "xlmr_f1_mean": 0.8819,
+      "xlmr_f1_min": 0.8779,
+      "xlmr_f1_max": 0.8859,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:pl",
+      "comparand_f1": 0.9914,
+      "xlmr_f1_mean": 0.9179,
+      "xlmr_f1_min": 0.9086,
+      "xlmr_f1_max": 0.9272,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "hard-general:ro",
+      "comparand_f1": 1.0,
+      "xlmr_f1_mean": 0.8504,
+      "xlmr_f1_min": 0.8148,
+      "xlmr_f1_max": 0.8861,
+      "all_seeds_beat_comparand_ci": false,
+      "contamination": "clean_held_out",
+      "config_status": "dev"
+    },
+    {
+      "track": "tab:tab-echr-legal-en-v1",
+      "comparand_f1": 0.0489,
+      "xlmr_f1_mean": 0.3059,
+      "xlmr_f1_min": 0.2439,
+      "xlmr_f1_max": 0.3679,
+      "all_seeds_beat_comparand_ci": true,
+      "contamination": "clean_held_out",
+      "config_status": "real-external-gold"
+    }
+  ],
+  "guards": {
+    "model_card_status": "dev",
+    "no_citable_or_sota_claim": true,
+    "citable_gated_on": "RES-77",
+    "contamination_labelled": true
+  },
+  "timestamp": "2026-06-07T14:37:34.582138+00:00"
+}
