@@ -1,0 +1,126 @@
+{
+  "issue": "RES-72",
+  "win_track": "RES-104",
+  "schema": 1,
+  "question": "Does training xlmr-560m on a REAL legal-STRUCTURE corpus (CJEU real-skeleton: mined CJEU layout signatures + authored connective prose + checksum-valid synthetic PII) transfer to the TAB real-legal board ZERO-SHOT better than generic synthetic (which caps ~0.30)? Decisive bounded gate for whether to scale the multilingual RES-72 corpus.",
+  "eval": {
+    "name": "TAB ECHR legal English (REAL peer-reviewed gold)",
+    "config": "tab-echr-legal-en-v1",
+    "n": 127,
+    "eval_labels": [
+      "ADDRESS",
+      "CASE_NUMBER",
+      "DATE",
+      "ORG_PARTY",
+      "PERSON"
+    ],
+    "path": "europriv-bench/evaluations/pii-detection-tab-echr-legal-en.yaml (RES-89)",
+    "scoring": "entity_f1 via scorecard_klu106 (_predict/_mask/_entity_f1_on_rows) — EXACT RES-97 path; the SAME path as every board number. Deterministic CPU scoring (EUROPRIV_DEVICE=cpu)."
+  },
+  "result": {
+    "tab_entity_f1": 0.3399,
+    "tab_entity_f2": 0.3146,
+    "precision": 0.3924,
+    "recall": 0.2997,
+    "clears_generic_ceiling": true,
+    "effect": "positive (clears the ~0.30 generic-synthetic ceiling)"
+  },
+  "baselines_on_board": {
+    "generic_synthetic_xlmr560m_40k_single_arm": {
+      "tab_f1": 0.2439,
+      "recipe": "template-splice, 40k docs (RES-104 step1 board entry)"
+    },
+    "generic_synthetic_xlmr560m_ceiling": {
+      "range": "~0.24-0.30",
+      "note": "RES-97 reports xlmr-560m TAB across seeds 0.244 / 0.368 (mean 0.306); RES-104.2a matched 2k arms 0.296 (stage-A) / 0.230 (stage-B). The generic-synthetic regime caps ~0.24-0.30."
+    },
+    "presidio_target": {
+      "tab_f1": 0.589,
+      "note": "Rule/model hybrid reference target on the same TAB board."
+    }
+  },
+  "deltas": {
+    "vs_generic_40k_0p2439": 0.096,
+    "vs_generic_ceiling_0p30": 0.0399,
+    "vs_presidio_0p589": -0.2491,
+    "fraction_of_presidio_gap_closed_from_generic_40k": 0.279
+  },
+  "training_setup": {
+    "base_model": "FacebookAI/xlm-roberta-large",
+    "n_train_rows": 20000,
+    "device": "mps",
+    "hyperparams": {
+      "epochs": 3,
+      "lr": 0.0003,
+      "lora_rank": 16,
+      "batch_size": 16,
+      "max_length": 256,
+      "seed": 0
+    },
+    "identical_to_res104_hyperparams": true,
+    "lora_target_modules": [
+      "query",
+      "key",
+      "value"
+    ],
+    "trainable_params": 2434121,
+    "all_params": 561349778,
+    "trainable_pct": 0.4336,
+    "train_seconds": 2057.7,
+    "train_samples_per_second": 29.2,
+    "total_wall_seconds": 2083.3,
+    "single_process": true,
+    "checkpoint_dir": "runs/res72-cjeu-tab-seed0"
+  },
+  "corpus": {
+    "name": "en_cjeu_skeleton_20k",
+    "path": "klusai-datasets/artifacts/europriv/en_cjeu_skeleton_20k.jsonl (gitignored — PoC, not pushed to HF)",
+    "build_script": "klusai-datasets/scripts/generate_en_cjeu_skeleton.py",
+    "generator": "klusai.privacy.datasets.data.en_skeletons_legal.generate_dataset (merged, validated)",
+    "n": 20000,
+    "seed": 20260608,
+    "n_mined_signatures": 91,
+    "real_structure_synthetic_pii": true,
+    "real_pii": false,
+    "labels": ["ADDRESS", "CASE_NUMBER", "DATE", "IBAN", "ORG_PARTY", "PERSON"],
+    "total_spans": 244099,
+    "build_seconds": 19.0,
+    "integrity": {
+      "iban_spans": 45972,
+      "invalid_iban": 0,
+      "misaligned_spans": 0,
+      "all_rows_byte_equal_and_bioes_valid": true
+    },
+    "diversity_unique_skeleton_ratio": {
+      "method": "europriv-bench analysis/synthetic_realism_gap.py::template_repetition",
+      "n_docs": 20000,
+      "unique_skeletons": 16920,
+      "unique_ratio": 0.846,
+      "top_skeleton_share": 0.0879,
+      "generic_synthetic_reference_ratio_res94": 0.004
+    }
+  },
+  "contamination_assert": {
+    "claim": "No TAB test doc text appears in the CJEU training corpus.",
+    "rationale": "TAB is ECHR/HUDOC (Council of Europe); the corpus is CJEU-structure (different court/collection) + synthetic PII, so there is no document overlap by construction.",
+    "tab_docs": 127,
+    "corpus_docs": 20000,
+    "tab_full_doc_hits_in_corpus": 0,
+    "tab_sentences_ge40_chars": 4578,
+    "tab_sentence_verbatim_hits_in_corpus": 0,
+    "result": "PASS — 0 full-doc and 0 sentence-level verbatim overlaps."
+  },
+  "decision": {
+    "go_no_go": "GO",
+    "recommendation": "Scale to the full multilingual RES-72 build. The CJEU real-structure corpus clears the generic-synthetic ceiling on real-legal zero-shot transfer (TAB-F1 0.3399 vs generic 40k 0.2439 and ceiling ~0.30). Real legal STRUCTURE is a working lever; scale-up is justified.",
+    "caveat": "Single seed -> directional, not a CI-backed claim. Real-structure / synthetic-PII corpus (NOT real PII). The 20k corpus is larger than the 2k RES-104.2a arms and smaller than the 40k generic board entry; absolute numbers are indicative of the regime, not a strict matched-size comparison."
+  },
+  "guards": {
+    "config_status": "dev (synthetic training; TAB is real external gold)",
+    "single_seed": true,
+    "no_citable_or_sota_claim": true,
+    "result_reported_truthfully": true,
+    "real_structure_synthetic_pii_not_real_pii": true
+  },
+  "timestamp": "2026-06-08T08:09:29+0300"
+}
