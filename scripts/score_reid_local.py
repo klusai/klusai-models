@@ -14,9 +14,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))  # scorecard_klu106 lives here
 from datasets import load_dataset
+from scorecard_klu106 import _mask, _predict
+
 from europriv_bench.metrics import entity_f1, tab_reid_leakage
 from europriv_bench.spans import Span, char_spans_to_bioes
-from scorecard_klu106 import _mask, _predict
 
 CKPTS = {
     "kp-xlmr-560m (F1 0.244)": "runs/kp-deid-xlmr-560m-seed0",
