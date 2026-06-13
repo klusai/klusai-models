@@ -13,13 +13,18 @@ post-detection residual; ↓ = less re-id risk), scored on **real ECHR legal gol
 
 | Rank | Model | DIRECT-leak ↓ | 95% CI | (detection-F1) |
 |---|---|---:|---|---:|
-| **1** | **kp-cjeu-structure (ours)** | **0.095** | [0.065, 0.136] | 0.340 |
+| **1** | **kp-cjeu-structure (ours)** ¹ | **0.095** | [0.065, 0.136] | 0.340 |
 | 2 | spacy `en_core_web_lg` | 0.496 | [0.436, 0.556] | 0.480 |
 | 3 | presidio | 0.500 | [0.440, 0.560] | 0.589 |
 | 4 | gliner | 0.599 | — | 0.357 |
 | 5 | tabularisai | 0.625 | — | 0.073 |
 | 6 | gliner2 | 0.651 | — | 0.545 |
 | 7 | kp-deid-mdeberta-280m | 0.674 | — | 0.199 |
+
+¹ `kp-cjeu-structure` = local checkpoint `runs/res72-cjeu-tab-seed0`, **published** as
+[`klusai/kp-deid-xlmr-560m-legal`](https://huggingface.co/klusai/kp-deid-xlmr-560m-legal) (identical
+weights; the board is scored from the local checkpoint). The separately-shipped
+`kp-deid-mdeberta-280m` is a *different* model (ranks 7th here).
 | 8 | kp-cjeu-realprose (ours) | 0.867 | — | 0.265 |
 
 **Our CJEU-real-structure model leaks ~5× fewer DIRECT identifiers than the best competitor** (0.095
