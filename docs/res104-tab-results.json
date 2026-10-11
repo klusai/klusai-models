@@ -1,0 +1,553 @@
+{
+  "n_docs": 127,
+  "bootstrap_replicates": 2000,
+  "bootstrap_seed": 104,
+  "bootstrap_unit": "document (paired across models; DIRECT subjects clustered within document)",
+  "interval": "95% percentile; marginal DIRECT intervals use harness Wilson",
+  "results": {
+    "cjeu-seed0": {
+      "entity_f1": {
+        "precision": 0.3924497555676263,
+        "recall": 0.2997303464011616,
+        "f1": 0.33988004233799834
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1925.0,
+        "all_leak_rate": 0.4854981084489281,
+        "all_leak_rate_ci_low": 0.4699631338804676,
+        "all_leak_rate_ci_high": 0.5010611557905171,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 25.0,
+        "direct_leak_rate": 0.0946969696969697,
+        "direct_leak_rate_ci_low": 0.06496639870257452,
+        "direct_leak_rate_ci_high": 0.13605343810092718,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1900.0,
+        "quasi_leak_rate": 0.5133747635774115,
+        "quasi_leak_rate_ci_low": 0.49726640905497776,
+        "quasi_leak_rate_ci_high": 0.5294553822869069
+      },
+      "seed": 0,
+      "model": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed0",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "00b358986e60f6792d2d1d40d702bed131f302d1e4fc131e93cdc47a22ffda12",
+      "training_record": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed0-result.json",
+      "training_record_sha256": "dc201ecee077f8819bcf3a4a6bf9c397d4f9229d03a80aadc0d4f8dcf5dfcb5d",
+      "checkpoint_selection": "fixed RES-72 epoch count",
+      "best_checkpoint": null,
+      "f1_ci95": [
+        0.3125713486333789,
+        0.36561618916399524
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.2488835332676826,
+          "f1_ci95": [
+            -0.27560166287844984,
+            -0.2202564486333774
+          ],
+          "direct_leak": -0.4053030303030303,
+          "direct_leak_ci95": [
+            -0.44186264262694885,
+            -0.36679536679536684
+          ]
+        },
+        "spacy": {
+          "f1": -0.13987934637928345,
+          "f1_ci95": [
+            -0.1662741882403883,
+            -0.11318034403398582
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.43820872947277445,
+            -0.36259541984732824
+          ]
+        }
+      }
+    },
+    "cjeu-seed1": {
+      "entity_f1": {
+        "precision": 0.3147949323598883,
+        "recall": 0.3040862891516283,
+        "f1": 0.30934796370542306
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1899.0,
+        "all_leak_rate": 0.4789407313997478,
+        "all_leak_rate_ci_low": 0.46341935616867996,
+        "all_leak_rate_ci_high": 0.4945028731796198,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 26.0,
+        "direct_leak_rate": 0.09848484848484848,
+        "direct_leak_rate_ci_low": 0.06809731093949536,
+        "direct_leak_rate_ci_high": 0.14038963019294556,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1873.0,
+        "quasi_leak_rate": 0.5060794379897325,
+        "quasi_leak_rate_ci_low": 0.48997408148863564,
+        "quasi_leak_rate_ci_high": 0.5221721873031301
+      },
+      "seed": 1,
+      "model": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed1",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "ffca1b22c13b5a46a074463c0c7c96e4154dc6707596cc85db7207644a020773",
+      "training_record": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed1-result.json",
+      "training_record_sha256": "3c9ec567574253dc0548add7178955638f6e61cf7958767abf443ce3c574e1b4",
+      "checkpoint_selection": "fixed RES-72 epoch count",
+      "best_checkpoint": null,
+      "f1_ci95": [
+        0.2850330396653648,
+        0.33411413144977326
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.2794156119002579,
+          "f1_ci95": [
+            -0.30572402004190424,
+            -0.25292740440943984
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.43820224719101125,
+            -0.36258713812473
+          ]
+        },
+        "spacy": {
+          "f1": -0.17041142501185874,
+          "f1_ci95": [
+            -0.19499913384439688,
+            -0.14549851137454278
+          ],
+          "direct_leak": -0.3977272727272727,
+          "direct_leak_ci95": [
+            -0.4351315828556153,
+            -0.35769230769230764
+          ]
+        }
+      }
+    },
+    "cjeu-seed2": {
+      "entity_f1": {
+        "precision": 0.3712142261739372,
+        "recall": 0.27712092926778675,
+        "f1": 0.3173396674584323
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1972.0,
+        "all_leak_rate": 0.4973518284993695,
+        "all_leak_rate_ci_low": 0.4817990608211364,
+        "all_leak_rate_ci_high": 0.5129097225100869,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 26.0,
+        "direct_leak_rate": 0.09848484848484848,
+        "direct_leak_rate_ci_low": 0.06809731093949536,
+        "direct_leak_rate_ci_high": 0.14038963019294556,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1946.0,
+        "quasi_leak_rate": 0.5258038368008646,
+        "quasi_leak_rate_ci_low": 0.5096982720536797,
+        "quasi_leak_rate_ci_high": 0.5418558910402594
+      },
+      "seed": 2,
+      "model": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed2",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "82389eb6edba5d93110d2f0de034b28cf3398394a77f452b88c4bd22ce43cfc2",
+      "training_record": "/Users/mihai/codespace/klusai-models/runs/res72-cjeu-tab-seed2-result.json",
+      "training_record_sha256": "d6d1ba0dad48cf6f91e16dac97691163cf040216af5168168d23ee009baa7f05",
+      "checkpoint_selection": "fixed RES-72 epoch count",
+      "best_checkpoint": null,
+      "f1_ci95": [
+        0.28861182919115,
+        0.3450137313682829
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.27142390814724865,
+          "f1_ci95": [
+            -0.29807354962480553,
+            -0.24298724452610715
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.43820224719101125,
+            -0.36258713812473
+          ]
+        },
+        "spacy": {
+          "f1": -0.16241972125884951,
+          "f1_ci95": [
+            -0.18850164892251134,
+            -0.13495634040406426
+          ],
+          "direct_leak": -0.3977272727272727,
+          "direct_leak_ci95": [
+            -0.4351315828556153,
+            -0.35769230769230764
+          ]
+        }
+      }
+    },
+    "presidio": {
+      "entity_f1": {
+        "precision": 0.5928496319663512,
+        "recall": 0.5847334577888404,
+        "f1": 0.5887635756056809
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 668.0,
+        "all_leak_rate": 0.16847414880201766,
+        "all_leak_rate_ci_low": 0.15714613915215211,
+        "all_leak_rate_ci_high": 0.18044392645671023,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 132.0,
+        "direct_leak_rate": 0.5,
+        "direct_leak_rate_ci_low": 0.44012047808302746,
+        "direct_leak_rate_ci_high": 0.5598795219169725,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 536.0,
+        "quasi_leak_rate": 0.14482572277762767,
+        "quasi_leak_rate_ci_low": 0.13385585388137392,
+        "quasi_leak_rate_ci_high": 0.15653213159524446
+      },
+      "seed": null,
+      "model": "presidio",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "f1_ci95": [
+        0.5625585609009945,
+        0.6149269340165017
+      ],
+      "paired_deltas": {
+        "spacy": {
+          "f1": 0.10900418688839913,
+          "f1_ci95": [
+            0.09309434525398019,
+            0.12308840081216152
+          ],
+          "direct_leak": 0.0037878787878787845,
+          "direct_leak_ci95": [
+            0.0,
+            0.011406844106463865
+          ]
+        }
+      }
+    },
+    "spacy": {
+      "entity_f1": {
+        "precision": 0.39446598048389253,
+        "recall": 0.6121136693632027,
+        "f1": 0.4797593887172818
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 424.0,
+        "all_leak_rate": 0.10693568726355612,
+        "all_leak_rate_ci_low": 0.09769430192838563,
+        "all_leak_rate_ci_high": 0.1169379668060472,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 131.0,
+        "direct_leak_rate": 0.4962121212121212,
+        "direct_leak_rate_ci_low": 0.4363886196040157,
+        "direct_leak_rate_ci_high": 0.5561442760670451,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 293.0,
+        "quasi_leak_rate": 0.07916779248851662,
+        "quasi_leak_rate_ci_low": 0.07089905255443431,
+        "quasi_leak_rate_ci_high": 0.08830922997111386
+      },
+      "seed": null,
+      "model": "spacy",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "f1_ci95": [
+        0.45756829897546625,
+        0.5017218073651252
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.10900418688839913,
+          "f1_ci95": [
+            -0.12308840081216152,
+            -0.0930943452539802
+          ],
+          "direct_leak": -0.0037878787878787845,
+          "direct_leak_ci95": [
+            -0.011406844106463865,
+            0.0
+          ]
+        }
+      }
+    },
+    "tab-seed0": {
+      "entity_f1": {
+        "precision": 0.8345999105945463,
+        "recall": 0.38726405310101636,
+        "f1": 0.5290450552564466
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1956.0,
+        "all_leak_rate": 0.49331651954602773,
+        "all_leak_rate_ci_low": 0.4777688280940053,
+        "all_leak_rate_ci_high": 0.5088771488847965,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 26.0,
+        "direct_leak_rate": 0.09848484848484848,
+        "direct_leak_rate_ci_low": 0.06809731093949536,
+        "direct_leak_rate_ci_high": 0.14038963019294556,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1930.0,
+        "quasi_leak_rate": 0.5214806808970549,
+        "quasi_leak_rate_ci_low": 0.5053730157437718,
+        "quasi_leak_rate_ci_high": 0.5375438006538006
+      },
+      "seed": 0,
+      "model": "runs/res104-tab-seed0",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "15f9f470bd1d75f3145dc57966cf183a68437c443cfda746bf0517abaa618267",
+      "training_record": "runs/res104-tab-seed0-train.json",
+      "training_record_sha256": "84e60558e8e78096db0cd6483c5ff0d23158cc7de37e19636b8f50cf641360ce",
+      "checkpoint_selection": "minimum TAB-dev loss over epochs 1/2/3; not a quality metric",
+      "best_checkpoint": "runs/res104-tab-seed0-checkpoints/checkpoint-1479",
+      "f1_ci95": [
+        0.48821302605580486,
+        0.5693462102860798
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.059718520349234305,
+          "f1_ci95": [
+            -0.09818873173643429,
+            -0.019352565679382535
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.437984496124031,
+            -0.3618616020790558
+          ]
+        },
+        "spacy": {
+          "f1": 0.04928566653916483,
+          "f1_ci95": [
+            0.010671832320789032,
+            0.09009200894568191
+          ],
+          "direct_leak": -0.3977272727272727,
+          "direct_leak_ci95": [
+            -0.4349484945656801,
+            -0.3579275475447063
+          ]
+        },
+        "cjeu-seed0": {
+          "f1": 0.18916501291844828,
+          "f1_ci95": [
+            0.16970811199677374,
+            0.21076401568997913
+          ],
+          "direct_leak": 0.0037878787878787845,
+          "direct_leak_ci95": [
+            0.0,
+            0.011494252873563218
+          ]
+        }
+      }
+    },
+    "tab-seed1": {
+      "entity_f1": {
+        "precision": 0.8367805755395683,
+        "recall": 0.38601949802945446,
+        "f1": 0.528317955997161
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1957.0,
+        "all_leak_rate": 0.4935687263556116,
+        "all_leak_rate_ci_low": 0.4780206879792736,
+        "all_leak_rate_ci_high": 0.5091292143965546,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 25.0,
+        "direct_leak_rate": 0.0946969696969697,
+        "direct_leak_rate_ci_low": 0.06496639870257452,
+        "direct_leak_rate_ci_high": 0.13605343810092718,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1932.0,
+        "quasi_leak_rate": 0.5220210753850311,
+        "quasi_leak_rate_ci_low": 0.5059136068157915,
+        "quasi_leak_rate_ci_high": 0.5380828779188267
+      },
+      "seed": 1,
+      "model": "runs/res104-tab-seed1",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "f7f5033882303a33ec9c78e77681663dc3c3fdbe2da9d27ebc12ae9eb99ea398",
+      "training_record": "runs/res104-tab-seed1-train.json",
+      "training_record_sha256": "7c66514901a3194aacaa8aaa314a34de6eee0dfc0887addbac54d1a595ab278c",
+      "checkpoint_selection": "minimum TAB-dev loss over epochs 1/2/3; not a quality metric",
+      "best_checkpoint": "runs/res104-tab-seed1-checkpoints/checkpoint-1479",
+      "f1_ci95": [
+        0.48824089063845705,
+        0.5689968381451382
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.06044561960851991,
+          "f1_ci95": [
+            -0.09822638342964991,
+            -0.020712294808266085
+          ],
+          "direct_leak": -0.4053030303030303,
+          "direct_leak_ci95": [
+            -0.44186264262694885,
+            -0.36679536679536684
+          ]
+        },
+        "spacy": {
+          "f1": 0.04855856727987923,
+          "f1_ci95": [
+            0.010733649604895994,
+            0.08910126628469638
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.43820872947277445,
+            -0.36259541984732824
+          ]
+        },
+        "cjeu-seed1": {
+          "f1": 0.21896999229173797,
+          "f1_ci95": [
+            0.19702417855783363,
+            0.24034971245224382
+          ],
+          "direct_leak": -0.0037878787878787845,
+          "direct_leak_ci95": [
+            -0.011538461538461539,
+            0.0
+          ]
+        }
+      }
+    },
+    "tab-seed2": {
+      "entity_f1": {
+        "precision": 0.8285588364918466,
+        "recall": 0.38996058908940057,
+        "f1": 0.5303244005641748
+      },
+      "tab_reid_leakage": {
+        "all_subjects_total": 3965.0,
+        "all_subjects_leaked": 1964.0,
+        "all_leak_rate": 0.49533417402269864,
+        "all_leak_rate_ci_low": 0.4797838179120409,
+        "all_leak_rate_ci_high": 0.5108935622429718,
+        "direct_subjects_total": 264.0,
+        "direct_subjects_leaked": 25.0,
+        "direct_leak_rate": 0.0946969696969697,
+        "direct_leak_rate_ci_low": 0.06496639870257452,
+        "direct_leak_rate_ci_high": 0.13605343810092718,
+        "quasi_subjects_total": 3701.0,
+        "quasi_subjects_leaked": 1939.0,
+        "quasi_leak_rate": 0.5239124560929479,
+        "quasi_leak_rate_ci_low": 0.5078058239667771,
+        "quasi_leak_rate_ci_high": 0.5399694999475015
+      },
+      "seed": 2,
+      "model": "runs/res104-tab-seed2",
+      "n_docs": 127,
+      "test_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742",
+      "weights_sha256": "761f579d96157fedcf22f56bfad098d4533570df0ebe9108a8b434f5e0600aa8",
+      "training_record": "runs/res104-tab-seed2-train.json",
+      "training_record_sha256": "7727fab1f64ff0ef8ebcbceb905e90e7d35214c18df7505e7f81cb3a314ccb8a",
+      "checkpoint_selection": "minimum TAB-dev loss over epochs 1/2/3; not a quality metric",
+      "best_checkpoint": "runs/res104-tab-seed2-checkpoints/checkpoint-1479",
+      "f1_ci95": [
+        0.4906965936571955,
+        0.5703605844224938
+      ],
+      "paired_deltas": {
+        "presidio": {
+          "f1": -0.058439175041506086,
+          "f1_ci95": [
+            -0.09703655307947036,
+            -0.01834249271362288
+          ],
+          "direct_leak": -0.4053030303030303,
+          "direct_leak_ci95": [
+            -0.44186264262694885,
+            -0.36679536679536684
+          ]
+        },
+        "spacy": {
+          "f1": 0.05056501184689305,
+          "f1_ci95": [
+            0.01147828021888572,
+            0.09115899545568182
+          ],
+          "direct_leak": -0.4015151515151515,
+          "direct_leak_ci95": [
+            -0.43820872947277445,
+            -0.36259541984732824
+          ]
+        },
+        "cjeu-seed2": {
+          "f1": 0.21298473310574256,
+          "f1_ci95": [
+            0.19322420864187193,
+            0.23370977104048712
+          ],
+          "direct_leak": -0.0037878787878787845,
+          "direct_leak_ci95": [
+            -0.011538461538461539,
+            0.0
+          ]
+        }
+      }
+    }
+  },
+  "seed_spread": {
+    "tab": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "seed_count": 3,
+      "f1_mean": 0.5292291372725941,
+      "f1_range": [
+        0.528317955997161,
+        0.5303244005641748
+      ],
+      "direct_mean": 0.09595959595959595,
+      "direct_range": [
+        0.0946969696969697,
+        0.09848484848484848
+      ]
+    },
+    "cjeu": {
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "seed_count": 3,
+      "f1_mean": 0.32218922450061793,
+      "f1_range": [
+        0.30934796370542306,
+        0.33988004233799834
+      ],
+      "direct_mean": 0.09722222222222221,
+      "direct_range": [
+        0.0946969696969697,
+        0.09848484848484848
+      ]
+    }
+  }
+}

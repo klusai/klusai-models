@@ -1,0 +1,160 @@
+{
+  "issue": "RES-104",
+  "status": "license_and_document_split_gate_passed",
+  "source": "https://github.com/NorskRegnesentral/text-anonymization-benchmark",
+  "revision": "558e09e26d6b36f5f78440074e6a233946d98bd9",
+  "license": "MIT",
+  "license_url": "https://github.com/NorskRegnesentral/text-anonymization-benchmark/blob/558e09e26d6b36f5f78440074e6a233946d98bd9/LICENSE.txt",
+  "license_sha256": "9569b31acf50e1cb3f38f47220f2c3a42f533e07e72fe2d18c2871e89098a8c7",
+  "license_notice_local": "artifacts/res104-tab/LICENSE.txt",
+  "attribution": "Pilan et al. (2022), Text Anonymization Benchmark; Norsk Regnesentral",
+  "training_and_redistribution": "MIT; preserve copyright and permission notice",
+  "board": {
+    "repo": "klusai/europriv-bench",
+    "config": "tab-echr-legal-en-v1",
+    "split": "test",
+    "revision": "58faa4fa572cd8064818a6e1f8ca6e361b959c00",
+    "parquet_sha256": "8288dadd98b28c4db191a745aff25c939a1f69a712f016dce25719fde08dd5f9",
+    "curated_test_exact_match": true,
+    "n": 127
+  },
+  "curator_file_sha256": "59741e2117d30d450d70e2c43dc8646164d8a3f2d2cabb3b0a97a99f6c6347b1",
+  "curator_mapping_sha256": "14c7bd216cafed23fd8338e032441300722e8f430f239a06399df2fd05fbd19a",
+  "splits": {
+    "train": {
+      "input_docs": 1014,
+      "rows": 1010,
+      "spans": 51916,
+      "kept_labels": {
+        "DATE": 26732,
+        "PERSON": 10688,
+        "ORG_PARTY": 8691,
+        "ADDRESS": 3867,
+        "CASE_NUMBER": 1938
+      },
+      "identifier_type": {
+        "QUASI": 48567,
+        "DIRECT": 3349
+      },
+      "dropped_unmapped_entity_type": {
+        "MISC": 2341,
+        "DEM": 2161,
+        "QUANTITY": 1871
+      },
+      "misaligned_docs_dropped": [
+        "001-68605",
+        "001-77657",
+        "001-90751",
+        "001-57974"
+      ],
+      "source_sha256": "4aba41f8ac305ff9e93dd6f0bbc16756e57e9ace396c827931fab70e18d8c6a6",
+      "jsonl_sha256": "0352b38338a911edaf6dce9f8bb2e1816ab2ea835fbcb325344d65e28b997a75"
+    },
+    "dev": {
+      "input_docs": 127,
+      "rows": 126,
+      "spans": 4912,
+      "kept_labels": {
+        "DATE": 2434,
+        "PERSON": 1077,
+        "ORG_PARTY": 622,
+        "CASE_NUMBER": 436,
+        "ADDRESS": 343
+      },
+      "identifier_type": {
+        "QUASI": 4521,
+        "DIRECT": 391
+      },
+      "dropped_unmapped_entity_type": {
+        "DEM": 304,
+        "QUANTITY": 207,
+        "MISC": 193
+      },
+      "misaligned_docs_dropped": [
+        "001-57819"
+      ],
+      "source_sha256": "8c3c7306f46b8d54debeb38ae11d8b0b8bcf4bdccbc3b6f13c12ad7be16893ec",
+      "jsonl_sha256": "267d01bfc90c0814747720840c07f6b54e69738040756fc972c9e164ecfcfa7e"
+    },
+    "test": {
+      "input_docs": 127,
+      "rows": 127,
+      "spans": 4821,
+      "kept_labels": {
+        "DATE": 2467,
+        "PERSON": 987,
+        "ORG_PARTY": 648,
+        "ADDRESS": 390,
+        "CASE_NUMBER": 329
+      },
+      "identifier_type": {
+        "QUASI": 4460,
+        "DIRECT": 361
+      },
+      "dropped_unmapped_entity_type": {
+        "DEM": 233,
+        "MISC": 192,
+        "QUANTITY": 171
+      },
+      "misaligned_docs_dropped": [],
+      "source_sha256": "cd0f0f15f84a8739654c7cf30c6be8ce27b051ef73974d39d792a0cb8c846379",
+      "jsonl_sha256": "5070d23e447661f3a83d4424a0f2190e881d2c45a166a7fd2f3fc75b1f9a6742"
+    }
+  },
+  "disjointness": {
+    "train_vs_dev": {
+      "doc_id_overlap": 0,
+      "normalized_text_overlap": 0
+    },
+    "train_vs_test": {
+      "doc_id_overlap": 0,
+      "normalized_text_overlap": 0
+    },
+    "dev_vs_test": {
+      "doc_id_overlap": 0,
+      "normalized_text_overlap": 0
+    },
+    "train_dev_vs_harness": {
+      "train_vs_dev": {
+        "doc_id_overlap": 0,
+        "normalized_text_overlap": 0
+      },
+      "train_vs_board": {
+        "doc_id_overlap": 0,
+        "normalized_text_overlap": 0
+      },
+      "dev_vs_board": {
+        "doc_id_overlap": 0,
+        "normalized_text_overlap": 0
+      }
+    }
+  },
+  "selection": "TAB dev only; fixed epochs/LR/recipe before test scoring; no test-based arm selection",
+  "registered_recipe": {
+    "arm": "TAB train only",
+    "base": "FacebookAI/xlm-roberta-large",
+    "base_license": "MIT",
+    "base_url": "https://huggingface.co/FacebookAI/xlm-roberta-large",
+    "base_revision": "c23d21b0620b635a76227c604d44e43a9f0ee389",
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "epochs": 3,
+    "learning_rate": 0.0003,
+    "lora_rank": 16,
+    "batch_size": 16,
+    "dtype": "float32",
+    "device": "mps",
+    "max_length": 256,
+    "overflow_stride": 0,
+    "selection_metric": "minimum TAB-dev loss",
+    "optional_cjeu_mix": "not run",
+    "cjeu_baseline": "rescore existing RES-72 checkpoints seeds 0/1/2"
+  },
+  "not_verified": [
+    "Subject identity disjointness across cases",
+    "Near-duplicate passages across judgments"
+  ]
+}
