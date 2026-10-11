@@ -161,6 +161,12 @@ scoring) so results match the public leaderboard. SOTA is claimed only with head
 wins vs Piiranha (baseline-only, CC-BY-NC-ND), tabularisai, MAPA, OpenMed, GLiNER-PII,
 and `openai/privacy-filter`.
 
+The [RES-125 frozen candidate scorecard](docs/res125-candidate-scorecard.md) compares the shipped
+280M, three legal-560M seeds, three TAB-trained-560M seeds, stock EuroPriv Presidio and pinned Shield
+on identical benchmark rows. It reports legacy leakage separately from exact-character residual v2,
+utility and paired confidence intervals. The shipped 280M remains a single checkpoint; gateway
+acceptance is unverified. Historical any-overlap results must not be read as full-character protection.
+
 ### Pull request checks and merging
 
 The `test` CI job runs `make SHELL=/bin/bash check` on Python 3.13 for every PR and

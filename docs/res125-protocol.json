@@ -1,0 +1,23 @@
+{
+  "issue": "RES-125",
+  "protocol_version": 1,
+  "frozen_before_new_scoring": true,
+  "harness_commit": "4e1d64097ff761db0256ad4f3f523c42a071ccc4",
+  "benchmark_revision": "58faa4fa572cd8064818a6e1f8ca6e361b959c00",
+  "configs": ["tab-echr-legal-en", "ro-realskeleton", "pl-realskeleton", "en", "de", "fr", "es", "it", "nl", "ai4privacy-openpii-cs", "ai4privacy-openpii-de", "ai4privacy-openpii-el", "ai4privacy-openpii-fi", "ai4privacy-openpii-fr", "ai4privacy-openpii-hu", "ai4privacy-openpii-nl", "ai4privacy-openpii-pl", "ai4privacy-openpii-ro", "ai4privacy-openpii-sv"],
+  "candidates": {"kp-280m": "shipped bc977796e2002e8ab045664618ed8372781896bd; independent training seed unknown; NOT KLU-106 v2", "560m-legal": [0, 1, 2], "560m-tab": [0, 1, 2]},
+  "comparators": ["stock Presidio English default, threshold 0", "Shield pin 763956e6da84eb755c168acf13c5d10b9239ca5c5415a8a30b4c806c8c55dd1f, threshold 0.8"],
+  "primary_endpoint": "residual_leakage_v2.all_leak_rate",
+  "secondary_endpoint": "TAB residual_leakage_v2.direct_leak_rate",
+  "slices": ["all", "DIRECT", "QUASI", "UNSPECIFIED"],
+  "operator": "KP and stock Presidio: local literal U+2588 replacement over union of native detector character offsets, no whitespace-token expansion, no eval-label filtering. Shield: native DEFAULT replace; retain HTTP receipts and all native types.",
+  "scope": "Frozen detector-plus-operator experiments. KP/stock masks are new local operators, not deployed gateway implementations. Existing test gold, not a new independent gateway challenge.",
+  "utility": "fraction of gold non-PII non-whitespace characters removed; retention = 1 - fraction; zero denominator unavailable",
+  "legacy": "TAB any-overlap DIRECT/QUASI; national-ID and name-in-context on remaining configs, with unavailable denominators explicit",
+  "uncertainty": {"confidence": 0.95, "wilson": "per subject, descriptive", "bootstrap_unit": "whole document", "paired_resamples": 2000, "rng_seed": 125, "seed_pooling": false},
+  "best_tab_seed": "descriptive highest test F1; label post-hoc, never use alone for acceptance; report every seed and spread",
+  "win_gate": "gateway-contract v1: each of >=3 candidate seeds has v2 Wilson upper < comparator lower AND paired cluster delta upper < 0 AND over-redaction delta upper <= 0; preserve legacy RO/PL zero floors; reviewed held-out/disjointness and language support gates apply",
+  "ties": "zero/zero legacy national-ID floor is tie; overlapping CIs are no established superiority, not statistical equivalence",
+  "missing": "unverified, never zero or pass; persist exceptions per config/model",
+  "training": "TAB missing checkpoints: repeat registered RES-104 recipe sequentially, batch16 fp32 MPS, prior runtime 923 seconds/seed (<2h). Shipped 280M independent same-recipe seed checkpoints unavailable; do not relabel v2 models as shipped-model seeds."
+}
