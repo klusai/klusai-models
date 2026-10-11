@@ -26,6 +26,15 @@ CKPTS = {
 }
 
 
+def score_predictions(rows, predictions):
+    """Shared harness metrics for cached predictions, preserving TAB subject annotations."""
+    gold = [char_spans_to_bioes(r["text"], [Span(s["start"], s["end"], s["label"]) for s in r["spans"]])
+            for r in rows]
+    if len(rows) != len(predictions) or any(len(g) != len(p) for g, p in zip(gold, predictions)):
+        raise ValueError("Predictions must align to every gold document and whitespace token")
+    return {"entity_f1": entity_f1(gold, predictions), "tab_reid_leakage": tab_reid_leakage(rows, predictions)}
+
+
 def main() -> None:
     ds = load_dataset("klusai/europriv-bench", "tab-echr-legal-en-v1", split="test")
     rows = [{"text": r["text"], "spans": r["spans"]} for r in ds]
@@ -42,8 +51,9 @@ def main() -> None:
             continue
         t0 = time.time()
         pred = _mask(_predict(ckpt, texts), eval_labels)
-        f1 = entity_f1(gold_tags, pred)["f1"]
-        rl = tab_reid_leakage(rows, pred)
+        scores = score_predictions(rows, pred)
+        f1 = scores["entity_f1"]["f1"]
+        rl = scores["tab_reid_leakage"]
         rec = {"model": name, "entity_f1": round(f1, 4),
                "direct_leak_rate": round(rl["direct_leak_rate"], 4),
                "direct_leak_ci": [round(rl["direct_leak_rate_ci_low"], 4), round(rl["direct_leak_rate_ci_high"], 4)],
