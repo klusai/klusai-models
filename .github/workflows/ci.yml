@@ -34,7 +34,7 @@ jobs:
         run: |
           python -m venv .venv
           # Same base + dev install as Makefile, with the sibling pinned for CI.
-          .venv/bin/python -m pip install 'europriv-bench @ git+https://github.com/klusai/europriv-bench.git@43fafaa24cc635c115f1e1cb210e8a2bcb869020'
+          .venv/bin/python -m pip install 'europriv-bench @ git+https://github.com/klusai/europriv-bench.git@4e1d64097ff761db0256ad4f3f523c42a071ccc4'
           .venv/bin/python -m pip install -e '.[dev]'
           # Existing unit tests import these directly; no HF training stack needed.
           .venv/bin/python -m pip install 'torch>=2.4' --index-url https://download.pytorch.org/whl/cpu
