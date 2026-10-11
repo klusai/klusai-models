@@ -12,9 +12,10 @@ Model layer for the **KlusAI Privacy (KP)** program: finetuning, evaluation, and
 
 ## Compute model
 
-**MLX-first on Mac Studio; burst to DigitalOcean GPU droplets** for heavy jobs. Training is
-**device-agnostic** (`--backend mlx|cuda`); datasets/checkpoints sync via HF Hub so a droplet
-is stateless and disposable. MLX runs publish an extra `-mlx` variant.
+**PyTorch on Mac Studio; explicitly scheduled CUDA runs for heavy jobs.** Encoder training
+uses MPS; the MoE defaults to CPU on Mac, with MPS available. Both implemented trainers use
+`--backend cuda` and select hardware with `--device cpu|mps|cuda`. The MoE exports local
+checkpoints for separate coordinator-managed transfer. MLX runs publish an extra `-mlx` variant.
 
 ### Mac-tier device for the encoder family (KLU-45)
 
@@ -99,25 +100,31 @@ Scripts run as `python scripts/x.py` from the repo root (research-repo conventio
 
 ## Backends & extras
 
-The training/inference backends are optional extras so the SDK + config layer stay light.
-**`hf` and `mlx` are separate, non-combinable install paths — never `pip install .[hf,mlx]`.**
-Both transitively pull `transformers`, but they co-constrain it incompatibly: the `hf`
-training stack (and the privacy-filter MoE arch) needs `transformers>=5.0`, while older
-`mlx-lm` releases cap/exact-pin `transformers` below 5.0 (the 4.57.x band found in KLU-11),
-so resolving them together is unsatisfiable. Install whichever single backend the target
-environment needs; encoder training (which never uses MLX) and the MLX inference path live
-in different environments.
+The backends use **separate environments**. Keep the existing encoder stack in `.venv`
+(`.[hf]`: Transformers **4.57.6**) and install privacy-filter into `.venv-moe`
+(`.[moe]`: Transformers **5.10.2**, Torch **2.12.0**, PEFT **0.19.1**).
+Do not combine `hf`, `moe`, or `mlx` extras. The 4.x encoder stack does not recognize
+`openai_privacy_filter`; the MoE architecture requires Transformers >=5.9.
 
-| Model family (`scripts/train.py`) | Extra | Backend(s) |
+```bash
+make install-moe BENCH_DIR=../europriv-bench
+.venv-moe/bin/python scripts/train.py moe-finetune --help
+```
+
+| Model family | Extra/environment | Training implementation |
 | --- | --- | --- |
-| `moe-finetune` (privacy-filter MoE, primary) | `mlx` (Apple Silicon) **or** `hf` (CUDA) | `mlx` / `cuda` |
-| `xlmr-ner` (XLM-R / mDeBERTa token-classification) | `hf` | `cuda` (HF/Torch) |
-| `classifier` (sensitivity/doc-level) | `hf` | `cuda` (HF/Torch) |
-| `anon-lora` (LoRA anonymizer LLM) | `hf` | `cuda` (HF/Torch) |
-| `gliner` | `gliner` | HF/Torch |
+| `moe-finetune` | `moe` / `.venv-moe` | PyTorch CPU (default on Mac), MPS, CUDA |
+| `xlmr-ner` | `hf` / `.venv` | Existing Transformers 4.57 encoder path |
+| `classifier`, `anon-lora` | `hf` | Family-dependent; unified CLI still unwired |
+| `gliner` | `gliner` | Separate inference environment |
+| MLX experiments | `mlx` | Separate environment; not the MoE trainer |
 
-Per KLU-11, the encoder families (`xlmr-ner`, `classifier`) do not use MLX — MLX is only for
-the MoE / causal-LM track on Mac Studio. Pick `mlx` **or** `hf`, never both.
+The MoE trainer uses `--backend cuda` to select PyTorch and `--device` to select the
+actual device. It learns attention LoRA, routers, and a KP BIOES classifier; expert tensors
+remain frozen. It saves resumable PEFT checkpoints and a merged model loadable by the
+EuroPriv-Bench `kp-model` adapter. No upload occurs. See the
+[RES-100 runbook](docs/res100-gpu-runbook.md) for data preparation, CPU proof, exact CUDA
+commands, capacity estimates, and the Ubuntu bootstrap script.
 
 > **KLU-46 (spike):** an MLX-core proof-of-concept *can* run a DeBERTa-v2 encoder forward at
 > exact parity with `transformers` (`klusai/privacy/models/mlx_encoder.py`, behind the `mlx`
@@ -139,9 +146,10 @@ python scripts/train.py xlmr-ner --base microsoft/mdeberta-v3-base \
 # (encoder family never uses MLX — KLU-11. --backend cuda runs on CPU when no GPU is present;
 #  no -mlx variant is published for this family.)
 
-# MoE continue-finetune (primary track) — lands later.
-python scripts/train.py moe-finetune --base openai/privacy-filter \
-    --dataset klusai/ds-kp-legal-ro-50k --out klusai/kp-deid-moe-ro --backend mlx
+# MoE continue-finetune (prepared local KP + TAB-train corpus; see RES-100 runbook).
+.venv-moe/bin/python scripts/train.py moe-finetune --base openai/privacy-filter \
+    --dataset runs/res100-data/train.jsonl --out klusai/kp-deid-moe-ro \
+    --backend cuda --device cpu --batch-size 4 --max-steps 4 --max-train 128
 
 # Score on EuroPriv-Bench (defers entirely to the harness via its `kp-model` adapter).
 python scripts/evaluate.py --model klusai/kp-deid-mdeberta-280m \
