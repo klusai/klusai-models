@@ -161,6 +161,26 @@ scoring) so results match the public leaderboard. SOTA is claimed only with head
 wins vs Piiranha (baseline-only, CC-BY-NC-ND), tabularisai, MAPA, OpenMed, GLiNER-PII,
 and `openai/privacy-filter`.
 
+### Pull request checks and merging
+
+The `test` CI job runs `make SHELL=/bin/bash check` on Python 3.13 for every PR and
+push to `main`. It installs the base package and dev extra, pins `europriv-bench`
+to a Git commit in `.github/workflows/ci.yml`, and adds CPU PyTorch and `datasets`
+for the existing unit tests. HF offline flags prevent model downloads; the SDK
+model integration test and optional MLX tests use their existing skip conditions.
+
+Auto-merge is ported from `klusai/rb-cli`. A repository admin must enable squash
+and auto-merge, protect `main` with the required `test` check, and configure the
+team's Codex review requirement. The workflow honors required reviews; it does
+not request a Codex review itself. If it cannot confirm that `test` is actively
+required, it leaves auto-merge untouched. Protection exposed only through a
+ruleset without that branch API summary also fails closed.
+
+Drafts and `needs-review` or `hold` labels disable auto-merge. Forks, `review/` or
+`hold/` branches, and Dependabot major updates require an `automerge` label;
+that override never bypasses a draft or either hard hold label. The privileged
+workflow reads PR metadata only and never checks out or executes PR code.
+
 ### `kp-anon` — the Track-C span-replacement anonymizer (KLU-109)
 
 `kp-anon` (`anon-lora` family, `kp-anon-mdeberta-280m`) is a **span-replacement anonymizer**: a

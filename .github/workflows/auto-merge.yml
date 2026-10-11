@@ -1,0 +1,107 @@
+name: Auto-merge
+
+# Ported from klusai/rb-cli. Admin prerequisites: allow squash + auto-merge,
+# protect main with required `test`, and configure the team's Codex review gate.
+# Native auto-merge honors required reviews/checks; it does not request reviews.
+# No PR checkout or PR code execution in this privileged workflow.
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled, ready_for_review, converted_to_draft, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Require active test protection
+        id: protection
+        run: |
+          # Get-a-branch needs only contents:read, unlike the admin-only full
+          # protection endpoint. Missing/unreadable/disabled protection fails closed.
+          if ! gh api "repos/$GH_REPO/branches/main" > "$RUNNER_TEMP/branch.json"; then
+            echo "::warning::Cannot verify main protection; leaving auto-merge untouched."
+            exit 0
+          fi
+          if jq -e '
+            .protected == true and
+            (.protection.required_status_checks |
+              (.enforcement_level == "non_admins" or .enforcement_level == "everyone") and
+              (((.contexts // []) + [(.checks // [])[] | .context]) | index("test") != null))
+          ' "$RUNNER_TEMP/branch.json" > /dev/null; then
+            echo "active=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::main must actively require test; leaving auto-merge untouched."
+          fi
+
+      - name: Resolve Dependabot metadata
+        id: dependabot
+        if: steps.protection.outputs.active == 'true' && github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: dependabot/fetch-metadata@v3
+        # Unknown update types are held below; metadata failure must not prevent
+        # disabling previously enabled auto-merge after a new draft/hold event.
+        continue-on-error: true
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide eligibility
+        id: gate
+        if: steps.protection.outputs.active == 'true'
+        env:
+          UPDATE_TYPE: ${{ steps.dependabot.outputs.update-type }}
+        run: |
+          # Read current state so queued label/draft events cannot undo a newer hold.
+          gh api "repos/$GH_REPO/pulls/$PR_NUMBER" > "$RUNNER_TEMP/pr.json"
+          PR_AUTHOR=$(jq -r '.user.login' "$RUNNER_TEMP/pr.json")
+          HEAD_REF=$(jq -r '.head.ref' "$RUNNER_TEMP/pr.json")
+          HEAD_REPO=$(jq -r '.head.repo.full_name' "$RUNNER_TEMP/pr.json")
+          eligible=true
+
+          # Forks, review/hold branches, and Dependabot majors need explicit vouching.
+          if [ "$HEAD_REPO" != "$GH_REPO" ]; then eligible=false; fi
+          if [ "$PR_AUTHOR" = "dependabot[bot]" ]; then
+            case "$UPDATE_TYPE" in
+              version-update:semver-major|'') eligible=false ;;
+            esac
+          fi
+          case "$HEAD_REF" in review/*|hold/*) eligible=false ;; esac
+          if jq -e '.labels | any(.name == "automerge")' "$RUNNER_TEMP/pr.json" > /dev/null; then
+            eligible=true
+          fi
+
+          # Drafts and hard hold labels override even an explicit automerge label.
+          if jq -e '.draft or (.labels | any(.name == "needs-review" or .name == "hold"))' \
+            "$RUNNER_TEMP/pr.json" > /dev/null; then
+            eligible=false
+          fi
+          if ! jq -e '.state == "open" and .base.ref == "main"' "$RUNNER_TEMP/pr.json" > /dev/null; then
+            exit 0
+          fi
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$(jq -r '.head.sha' "$RUNNER_TEMP/pr.json")" >> "$GITHUB_OUTPUT"
+
+      - name: Enable auto-merge
+        if: steps.protection.outputs.active == 'true' && steps.gate.outputs.eligible == 'true'
+        env:
+          HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+        run: |
+          gh pr merge "$PR_NUMBER" --auto --squash --match-head-commit "$HEAD_SHA" || {
+            echo "::error::Could not enable auto-merge; check repository settings and the PR head."
+            exit 1
+          }
+
+      - name: Disable auto-merge
+        if: steps.protection.outputs.active == 'true' && steps.gate.outputs.eligible == 'false'
+        run: gh pr merge "$PR_NUMBER" --disable-auto
