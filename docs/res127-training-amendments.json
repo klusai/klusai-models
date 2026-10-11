@@ -1,0 +1,12 @@
+{
+  "issue": "RES-127",
+  "before_candidate_test_scoring": true,
+  "reason": "The unbucketed seed0 memory sample reported 45.4 GiB resident and32.6 GiB swapped near step2200 (48.6 GiB physical footprint). Shape caching was the initial hypothesis; a brief pause of our CPU baselines did not resolve it. Later external CPU calibration was observed. No isolated causal or throughput claim is established.",
+  "change": "Round collator padding to a multiple of32, limiting tensor lengths to16 possible shapes, while preserving batch16, fp32, max_length512 and all rows. Restart seed0 from the same initialization; no partial probe selected by test results.",
+  "evidence": "Assigned scratch/training-memory.txt and runs/mdeberta-280m-seed0-shape-probe; both early throughput probes retained for audit.",
+  "selection": "Unchanged: gateway-dev loss at1000-step checkpoints only. No candidate test scores inspected. All completed seed runs use the amended recipe.",
+  "prediction_protocol": "Unchanged; existing baseline prediction identities remain pinned to res127-protocol.json. These amendments affect training execution only.",
+  "allocator_amendment": "Rounded padding reduced allocation but did not prevent another slowdown. Enable the installed Trainer torch_empty_cache_steps=25 and resume checkpoint2000 with optimizer/RNG state. Preserve previous pin and elapsed session time in resume-history.json. No candidate test scoring occurred.",
+  "host_queue": "Five independent RES-100 CPU calibration processes were subsequently observed. The memory-heavy MPS run was queued without touching another task's processes. The under3h additional-seed rule uses the retained training run's elapsed wall time, including resumes and its host queue. Two earlier abandoned probes contributed no weights to this run; their overhead is recorded separately in timing.json.",
+  "activation_checkpointing": "Enable the installed DeBERTa/Trainer non-reentrant activation checkpointing to reduce live intermediate memory and resume checkpoint2000. Preserve batch16, fp32, max_length512, all training rows, optimizer and RNG state. Record this execution-profile change in the training pin; verify actual memory and progress before continuing."
+}

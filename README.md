@@ -167,6 +167,11 @@ on identical benchmark rows. It reports legacy leakage separately from exact-cha
 utility and paired confidence intervals. The shipped 280M remains a single checkpoint; gateway
 acceptance is unverified. Historical any-overlap results must not be read as full-character protection.
 
+The [RES-127 gateway encoder scorecard](docs/res127-encoder-scorecard.md) evaluates gateway-trained
+mDeBERTa against those baselines on gateway traffic and the same legacy anchors. It records dev-only
+checkpoint selection, per-seed uncertainty, national-ID preservation and remaining contract gates.
+Gateway F1 is a conditional diagnostic; exact-character leakage and utility retain every conversation.
+
 ### Pull request checks and merging
 
 The `test` CI job runs `make SHELL=/bin/bash check` on Python 3.13 for every PR and

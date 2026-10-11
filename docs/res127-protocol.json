@@ -1,0 +1,21 @@
+{
+  "issue": "RES-127",
+  "status": "frozen before candidate test scoring",
+  "harness_commit": "4ce4a3290731c5e8b0f27185339680fd5ca9433a",
+  "train": "40000 gateway TRAIN plus all 150000 original kp-280m RO/EN/PL general rows; CC-BY-4.0; manifest pins local bytes and source URLs",
+  "recipe": {"epochs": 3, "batch_size": 16, "dtype": "float32", "device": "mps", "max_length": 512, "lora_rank": 16, "group_by_length": true, "mdeberta_lr": 0.0003, "xlmr_lr": 0.0002},
+  "selection": "minimum gateway DEV token loss at each 1000-step checkpoint; no test selection; report all independently trained seeds",
+  "seeds": "0 first; 1 and 2 only if each completed training run takes under 10800 seconds; XLM-R optional",
+  "gateway_configs": ["gateway-ro", "gateway-en", "gateway-de", "gateway-fr", "gateway-es", "gateway-it", "gateway-nl", "gateway-pl"],
+  "anchor_configs": ["tab-echr-legal-en", "ro-realskeleton", "pl-realskeleton", "en", "de", "fr", "es", "it", "nl"],
+  "comparators": ["kp-280m", "presidio", "shield"],
+  "primary": "residual_leakage_v2.all_leak_rate",
+  "secondary": ["entity_f1", "residual DIRECT/QUASI/UNSPECIFIED", "non-PII non-whitespace character over-redaction", "legacy RO/PL national-ID zero floor"],
+  "gateway_operator": "KP simple aggregation, 512-token overflow stride64, native offsets, literal block-mask union; same protected-character coverage as RES-126 deletion. Presidio stock English threshold0. Shield pinned native DEFAULT replace.",
+  "anchor_operator": "Frozen RES-125 operators including KP 512-token cap/stride0; reuse matched baseline receipts, rescore with RES-126 harness. Full gold remains in denominator. Anchor truncation is a limitation, never a service claim.",
+  "uncertainty": {"confidence": 0.95, "wilson": "identifier subjects", "bootstrap": "2000 paired whole-document/conversation resamples, RNG125", "training_seed_pooling": false},
+  "win": "Each of at least 3 training seeds: candidate Wilson upper below comparator lower AND paired leak delta upper<0 AND over-redaction delta upper<=0; no new legacy national-ID leaks; every language plus reviewed/disjoint gold required. Any missing gate is unverified.",
+  "limits": ["Synthetic gateway gold lacks independent native review", "Legacy semantic training disjointness remains unverified", "No latency/load or deployment acceptance", "No training-loss quality claims"],
+  "throughput_amendment": "Initial seed0 padding probe stopped before first dev evaluation/checkpoint; length grouping enabled before completed training or test scoring. Same rows, seed and batch16. Probe retained in scratch.",
+  "f1_amendment": "Before candidate test scoring, first Presidio gateway scoring failed: char-disjoint gold entities share whitespace tokens. Full gateway BIOES F1 unavailable. Report harness F1 conditional on gold-representable conversations, with n/exclusion census. No conversation excluded from primary residual v2 or utility. No acceptance uses conditional F1."
+}
