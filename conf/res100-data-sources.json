@@ -1,0 +1,200 @@
+{
+  "recipe": "RES-97 eight-language carve/balance/in-training split + TAB train",
+  "seed": 0,
+  "pool_per_language": 10000,
+  "kp_max": 40000,
+  "sources": [
+    {
+      "repo": "klusai/ds-kp-general-ro-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-ro-50k",
+      "license": "cc-by-4.0",
+      "revision": "9be5d61214d9afcc6698bb201d0f71249cf1faf9",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "2317c92aebbbe65b1a97722aec5e1f104b79e9a1d6a7235eb473102ea5874d05"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-en-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-en-50k",
+      "license": "cc-by-4.0",
+      "revision": "4de38d5e2062bb880a903a9b83b21d09ce4e8ce7",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "4205ac4b6a95f55ac856ad3e194cae300386daf5960c9539b92f4c1d7ecef4ba"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-pl-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-pl-50k",
+      "license": "cc-by-4.0",
+      "revision": "00a2b5abde18b65598ca1a5e7af5979e720580a4",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "637b584717da110854c3b2daf67da56e9ea014c3448a08b57ff2766f25797b90"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-de-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-de-50k",
+      "license": "cc-by-4.0",
+      "revision": "89ad6f3a49812017166d3c4714d40b4e0347b5a3",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "02dd1d6052235dddfc0e2f23ebaba46526f83bd08278c7717283de6956974692"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-fr-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-fr-50k",
+      "license": "cc-by-4.0",
+      "revision": "6dbed38bf913434d17d24de951129d428345c76d",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "f11d423858c7b6fd1d2b9a332a03ff3b0dfa7dc846a0f5f5bb482dbf12e9b872"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-es-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-es-50k",
+      "license": "cc-by-4.0",
+      "revision": "44ad8c8ca8eb364e00c52672f3f1db471b708efb",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "7bd2ee6065acb59e2d439b20e07c9ad7aa9db922e312b36339a1860b0ef074f9"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-it-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-it-50k",
+      "license": "cc-by-4.0",
+      "revision": "1f46211fd5ba203c0071a5885d09965068a3d627",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "f91f2ce9d7bc523e7d7107a591f0c757c780828436d3cba645433580d4ed3efd"
+      }
+    },
+    {
+      "repo": "klusai/ds-kp-general-nl-50k",
+      "url": "https://huggingface.co/datasets/klusai/ds-kp-general-nl-50k",
+      "license": "cc-by-4.0",
+      "revision": "6e99ad415fee9e5768ec273e99a844e16de79fd9",
+      "split": "train",
+      "pool_rows": 10000,
+      "sha256": {
+        "data/train-00000-of-00001.parquet": "5275ccc2e707f9ef186f579bfaea3d69d65712ddc861c89e57493b9be6aebf9f"
+      }
+    },
+    {
+      "url": "https://raw.githubusercontent.com/NorskRegnesentral/text-anonymization-benchmark/master/echr_train.json",
+      "license": "MIT",
+      "split": "train",
+      "license_url": "https://github.com/NorskRegnesentral/text-anonymization-benchmark/blob/master/LICENSE.txt",
+      "sha256": "4aba41f8ac305ff9e93dd6f0bbc16756e57e9ace396c827931fab70e18d8c6a6",
+      "rows": 1010,
+      "misaligned_dropped": [
+        "001-68605",
+        "001-77657",
+        "001-90751",
+        "001-57974"
+      ]
+    }
+  ],
+  "carve": {
+    "heldout_templates_per_language": {
+      "ro": [
+        "Contract \u00eencheiat \u00eentre <PERSON> (CNP <NATIONAL_ID>) \u0219i societatea cu CUI <COMPANY_ID>, cont IBAN <ACCOUNT_ID>, la <DATE>."
+      ],
+      "en": [
+        "Agreement made between <PERSON> (NINO <NATIONAL_ID>) and <ORG_PARTY>, account IBAN <ACCOUNT_ID>, dated <DATE>."
+      ],
+      "pl": [
+        "Pacjent: <PERSON>, PESEL <NATIONAL_ID>, przyj\u0119ty w dniu <DATE>. Telefon kontaktowy: <PHONE>."
+      ],
+      "de": [
+        "Ich, der Unterzeichnende <PERSON>, Steuer-IdNr <NATIONAL_ID>, wohnhaft in <ADDRESS>, Telefon <PHONE>, erkl\u00e4re Vorstehendes als wahrheitsgem\u00e4\u00df am <DATE>."
+      ],
+      "fr": [
+        "Cher/Ch\u00e8re <PERSON>, e-mail <EMAIL>, nous confirmons que le paiement sur le compte <ACCOUNT_ID> a \u00e9t\u00e9 enregistr\u00e9 le <DATE>."
+      ],
+      "es": [
+        "Paciente: <PERSON>, DNI <NATIONAL_ID>, ingresado en fecha <DATE>. Tel\u00e9fono de contacto: <PHONE>."
+      ],
+      "it": [
+        "Paziente: <PERSON>, codice fiscale <NATIONAL_ID>, ricoverato in data <DATE>. Telefono di contatto: <PHONE>."
+      ],
+      "nl": [
+        "Ontslagbrief \u2014 <PERSON>, woonachtig te <ADDRESS>, diagnose: <HEALTH_CONDITION>."
+      ]
+    },
+    "heldout_rows": 13367,
+    "train_pool_rows": 66633,
+    "heldout_subjects_per_language": {
+      "de": 1641,
+      "en": 1677,
+      "es": 1629,
+      "fr": 0,
+      "it": 1636,
+      "nl": 0,
+      "pl": 1706,
+      "ro": 1725
+    },
+    "train_rows_dropped_for_shared_subject": {},
+    "subject_intersection_per_language": {
+      "de": 0,
+      "en": 0,
+      "es": 0,
+      "fr": 0,
+      "it": 0,
+      "nl": 0,
+      "pl": 0,
+      "ro": 0
+    },
+    "subject_disjoint": true,
+    "template_disjoint_per_language": true,
+    "subject_labels": [
+      "NATIONAL_ID"
+    ]
+  },
+  "balanced_per_language": {
+    "de": 5000,
+    "en": 5000,
+    "es": 5000,
+    "fr": 5000,
+    "it": 5000,
+    "nl": 5000,
+    "pl": 5000,
+    "ro": 5000
+  },
+  "validation_split": {
+    "total_templates": 40,
+    "eval_templates": 2,
+    "train_templates": 38,
+    "eval_rows": 1995,
+    "train_rows": 38005,
+    "disjoint": true
+  },
+  "kp_train_rows": 38005,
+  "tab_train_rows": 1010,
+  "outputs": {
+    "train": {
+      "rows": 39015,
+      "sha256": "6ca10a1d323f47a492080e280d9555eb88f098f253ac5a15b30d609aca358640"
+    },
+    "heldout-kp": {
+      "rows": 13367,
+      "sha256": "7f1d07b2a52af2c6c8cb36b1f48e02e490835295a33a89fb84f78ba463641c98"
+    },
+    "validation-kp": {
+      "rows": 1995,
+      "sha256": "393cf5016774cee7c2115d387b98957a53ac54b7cd9d3e1034ae376ce61279e3"
+    }
+  }
+}

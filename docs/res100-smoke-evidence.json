@@ -1,0 +1,160 @@
+{
+  "training": {
+    "base_model": "openai/privacy-filter",
+    "base_revision": "7ffa9a043d54d1be65afb281eddf0ffbe629385b",
+    "dataset_sha256": "14ea28aa6a97c7630be8e40d5f8db71405a180778f862850025e2dc64753bf34",
+    "rows": 131,
+    "chunks": 156,
+    "tokens_per_epoch": 13517,
+    "epochs": 3,
+    "batch_size": 4,
+    "max_length": 256,
+    "seed": 0,
+    "lr": 0.0001,
+    "lora_rank": 8,
+    "gradient_accumulation_steps": 4,
+    "device": "cpu",
+    "dtype": "float32",
+    "transformers": "5.10.2",
+    "torch": "2.12.0",
+    "adaptation": "attention LoRA + full router and classifier; frozen experts",
+    "trainable_total": 998089,
+    "process_peak_rss_bytes": 9875652608,
+    "completed_steps": 4,
+    "warm_steps": 3,
+    "warm_seconds": 30.769121292047203,
+    "warm_tokens_per_second": 131.43046763071652,
+    "warm_padded_tokens_per_second": 247.52088068138895,
+    "checkpoint": "cpu-smoke/merged (scratch; not committed)",
+    "quality_claim": null
+  },
+  "score": {
+    "spec": "RES-100 held-out KP smoke (not a quality evaluation)",
+    "task": "detection",
+    "languages": [
+      "en",
+      "ro"
+    ],
+    "domain": "general",
+    "adapter": "kp-model",
+    "model_id": "cpu-smoke/merged (scratch; not committed)",
+    "n": 16,
+    "limit": 16,
+    "eval_labels": [
+      "ACCOUNT_ID",
+      "COMPANY_ID",
+      "DATE",
+      "NATIONAL_ID",
+      "ORG_PARTY",
+      "PERSON"
+    ],
+    "scores": {
+      "entity_f1": {
+        "precision": 0.15841584158415842,
+        "recall": 0.2,
+        "f1": 0.17679558011049726
+      },
+      "national_id_leakage": {
+        "decode_bearing_total": 15.0,
+        "decode_bearing_detected": 9.0,
+        "decode_bearing_missed": 6.0,
+        "leak_rate": 0.4,
+        "leak_rate_ci_low": 0.19824525798026454,
+        "leak_rate_ci_high": 0.6425312702346633,
+        "detection_rate": 0.6,
+        "leaked_quasi_identifiers": 18.0,
+        "coverage_only_total": 0.0,
+        "coverage_only_detected": 0.0,
+        "coverage_only_detection_rate": 0.0,
+        "ro_total": 15.0,
+        "ro_detected": 9.0
+      }
+    },
+    "contamination": "unknown",
+    "config_status": "dev",
+    "europriv_bench_version": "0.2.0",
+    "taxonomy_version": "0.2.0",
+    "dataset": {
+      "hf_id": "local/res100-smoke",
+      "config": "res100-heldout-smoke",
+      "split": "test"
+    },
+    "timestamp": null,
+    "entity_f1_bootstrap": {
+      "ci95": [
+        0.12359550561797752,
+        0.22732861400894183
+      ],
+      "resamples": 1000,
+      "seed": 0,
+      "unit": "document"
+    },
+    "seed_count": 1,
+    "training_seed": 0,
+    "quality_claim": null,
+    "scope": "checkpoint/adapter smoke only; tiny held-out KP carve, no TAB score"
+  },
+  "capacity": {
+    "warm_steps": 3,
+    "seed_count": 1,
+    "tokens_per_second": 131.43046763071652,
+    "bootstrap_ci95": [
+      119.06320792961947,
+      138.3037940986875
+    ],
+    "bootstrap_resamples": 10000,
+    "bootstrap_seed": 0,
+    "full_tokens_per_epoch": 3656801,
+    "full_chunks_per_epoch": 45316,
+    "cpu_hours_per_seed": 23.18590370711331,
+    "contention": "Another training process was live on the M3 Ultra; no exclusive-machine claim",
+    "cuda_estimates": {
+      "L40S 48GB": {
+        "assumed_speedup": 2,
+        "sensitivity_speedup": [
+          0.5,
+          4
+        ],
+        "hours_per_seed_with_20pct_overhead": 13.911542224267986,
+        "sensitivity_hours_per_seed": [
+          6.955771112133993,
+          55.646168897071945
+        ],
+        "measured": false
+      },
+      "H100 80GB": {
+        "assumed_speedup": 4,
+        "sensitivity_speedup": [
+          0.5,
+          8
+        ],
+        "hours_per_seed_with_20pct_overhead": 6.955771112133993,
+        "sensitivity_hours_per_seed": [
+          3.4778855560669966,
+          55.646168897071945
+        ],
+        "measured": false
+      }
+    }
+  },
+  "merged_weights_sha256": "da7c4b33902ab1c0c8d0aec83b0e9477ad68824d8afe3e6ae8bec46412a73687",
+  "benchmark_git_ref": "43fafaa24cc635c115f1e1cb210e8a2bcb869020",
+  "datasets_git_ref": "736665aa1c8908c73f6d0dd19b75d4541cf97b46",
+  "seed_count": 1,
+  "claim": "Engineering smoke only; no win or full-quality claim",
+  "scored_rows_sha256": "8e03a6d4ba91faf7c7b4124a23c9ad2cfed0a310da7dcc45dbc05e9d20d2da75",
+  "full_recipe_outputs": {
+    "train": {
+      "rows": 39015,
+      "sha256": "6ca10a1d323f47a492080e280d9555eb88f098f253ac5a15b30d609aca358640"
+    },
+    "heldout-kp": {
+      "rows": 13367,
+      "sha256": "7f1d07b2a52af2c6c8cb36b1f48e02e490835295a33a89fb84f78ba463641c98"
+    },
+    "validation-kp": {
+      "rows": 1995,
+      "sha256": "393cf5016774cee7c2115d387b98957a53ac54b7cd9d3e1034ae376ce61279e3"
+    }
+  }
+}

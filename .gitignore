@@ -22,3 +22,5 @@ wandb/
 
 # OS
 .DS_Store
+
+.venv-moe/
